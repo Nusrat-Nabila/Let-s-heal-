@@ -16,7 +16,7 @@ class Customer(models.Model):
         ('female','female'),
         ('no choice','no choice'), 
     )
-    customer_gender=models.CharField(max_length=150,choices=customer_gender_choice,default='no choice')
+    customer_gender=models.CharField(max_length=150,choices=customer_gender_choice,default='no choice' , blank=True,null=True)
 
     def __str__(self):
        return self.customer_name

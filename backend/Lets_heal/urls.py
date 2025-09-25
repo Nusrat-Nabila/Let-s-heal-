@@ -18,12 +18,17 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
+from account import views as a_views
+from blog import views as b_views
+from chat import views as c_views
+from quiz import views as q_views
+from therapy import views as t_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # your other urls...
+    path('api/customer_signup/', a_views.customer_signup, name='customer_signup'),
+    path('api/therapist_signup/', a_views.therapist_signup, name='therapist_signup'),
 ]
-
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     

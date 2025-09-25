@@ -3,6 +3,8 @@ from rest_framework import serializers
 from .models import Customer, Therapist, Admin, UserAuth, Review
 
 class CustomerSerializer(serializers.ModelSerializer):
+    
+    confirm_password = serializers.CharField(write_only=True)
     class Meta:
         model = Customer
         fields = [
@@ -15,9 +17,22 @@ class CustomerSerializer(serializers.ModelSerializer):
             'customer_password',
             'customer_role',
             'customer_gender',
+            'confirm_password',
         ]
 
+    def validate(self, data):
+     password = data.get("customer_password")
+     confirm = data.get("confirm_password")
+
+     if password != confirm:
+        raise serializers.ValidationError("Passwords do not match")
+     else:
+        data.pop("confirm_password", None)  
+     return data
+
+
 class TherapistSerializer(serializers.ModelSerializer):
+    confirm_password = serializers.CharField(write_only=True)
     class Meta:
         model = Therapist
         fields = [
@@ -37,7 +52,18 @@ class TherapistSerializer(serializers.ModelSerializer):
             'therapist_gender',
             'hospital_name',
             'hospital_address',
+            'confirm_password',
         ]
+
+    def validate(self, data):
+     password = data.get("therapist_password")
+     confirm = data.get("confirm_password")
+
+     if password != confirm:
+        raise serializers.ValidationError("Passwords do not match")
+     else:
+        data.pop("confirm_password", None)  
+     return data
 
 class AdminSerializer(serializers.ModelSerializer):
     class Meta:
