@@ -20,6 +20,9 @@ class Customer(models.Model):
 
     def __str__(self):
        return self.customer_name
+class Meta:
+        unique_together = ('customer_name', 'customer_email')
+    
     
 class Therapist(models.Model):
     therapist_name=models.CharField(max_length=100)
@@ -45,14 +48,20 @@ class Therapist(models.Model):
 
     def __str__(self):
        return self.therapist_name
+    class Meta:
+        unique_together = ('therapist_name', 'therapist_email')
 
 class Admin(models.Model):
     admin_name=models.CharField(max_length=100,blank=True,null=True)
     admin_email=models.EmailField(max_length=100,blank=True,null=True)
     admin_password=models.CharField(max_length=200,blank=True,null=True)
     admin_role = models.CharField(max_length=20, default='admin')
+
     def __str__(self):
        return self.admin_name
+    
+    class Meta:
+        unique_together = ('admin_name', 'admin_email')
 
 class UserAuth(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -60,11 +69,15 @@ class UserAuth(models.Model):
     user_object = GenericForeignKey('content_type', 'object_id')
     
     user_name = models.CharField(max_length=100,blank=True,null=True)
+    user_email = models.EmailField(max_length=100,blank=True,null=True)
     user_password = models.CharField(max_length=200,blank=True,null=True)
     user_role = models.CharField(max_length=20,blank=True,null=True)
 
     def __str__(self):
        return f"{self.user_name}-{self.user_role}"
+    
+    class Meta:
+        unique_together = ('user_name', 'user_email','user_password', 'user_role')
     
 class Review(models.Model):
     customer=models.ForeignKey(Customer,on_delete=models.CASCADE)

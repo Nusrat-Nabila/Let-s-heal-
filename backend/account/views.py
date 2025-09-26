@@ -15,6 +15,7 @@ def customer_signup(request):
         content_type=ContentType.objects.get_for_model(Customer),
         object_id=customer.id,
         user_name=customer.customer_name,
+        user_email=customer.customer_email,
         user_password=customer.customer_password,
         user_role=customer.customer_role
        )
@@ -33,9 +34,13 @@ def therapist_signup(request):
         content_type=ContentType.objects.get_for_model(therapist),
         object_id=therapist.id,
         user_name=therapist.therapist_name,
+        user_email=therapist.therapist_email,
         user_password=therapist.therapist_password,
         user_role=therapist.therapist_role
        )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     else:
       return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+    

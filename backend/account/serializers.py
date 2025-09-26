@@ -84,6 +84,7 @@ class UserAuthSerializer(serializers.ModelSerializer):
             'content_type',
             'object_id',
             'user_name',
+            'user_email',
             'user_password',
             'user_role',
         ]
