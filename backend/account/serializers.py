@@ -1,6 +1,6 @@
 # serializers.py
 from rest_framework import serializers
-from .models import Customer, Therapist, Admin, UserAuth, Review
+from .models import Customer, Therapist, Admin, UserAuth, Review ,TherapistRequest
 
 class CustomerSerializer(serializers.ModelSerializer):
     
@@ -32,7 +32,7 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 
 class TherapistSerializer(serializers.ModelSerializer):
-    confirm_password = serializers.CharField(write_only=True)
+
     class Meta:
         model = Therapist
         fields = [
@@ -45,18 +45,40 @@ class TherapistSerializer(serializers.ModelSerializer):
             'therapist_specialization',
             'therapist_qualification',
             'therapist_status',
-            'therapist_licence_number',
+            'therapist_licence',
             'therapist_Serve_for',
             'therapist_password',
             'therapist_role',
             'therapist_gender',
             'hospital_name',
             'hospital_address',
-            'confirm_password',
         ]
 
+class TherapistRequestSerializer(serializers.ModelSerializer):
+    confirm_password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = TherapistRequest
+        fields = [
+            'id',
+            'name',
+            'email',
+            'phone',
+            'year_of_experience',
+            'specialization',
+            'qualification',
+            'gender',
+            'hospital_name',
+            'hospital_address',
+            'password',
+            'confirm_password',
+            'licence_pdf',
+            'status',
+        ]
+        read_only_fields = ['status']
+
     def validate(self, data):
-     password = data.get("therapist_password")
+     password = data.get("password")
      confirm = data.get("confirm_password")
 
      if password != confirm:
@@ -64,7 +86,8 @@ class TherapistSerializer(serializers.ModelSerializer):
      else:
         data.pop("confirm_password", None)  
      return data
-
+    
+    
 class AdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = Admin

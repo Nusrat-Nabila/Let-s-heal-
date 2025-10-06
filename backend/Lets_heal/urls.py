@@ -27,7 +27,16 @@ from therapy import views as t_views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/customer_signup/', a_views.customer_signup, name='customer_signup'),
-    path('api/therapist_signup/', a_views.therapist_signup, name='therapist_signup'),
+    path('api/therapist_request_signup/', a_views.therapist_request_signup, name='therapist_request_signup'),
+    path('api/list_therapist_request/', a_views.list_therapist_request, name='list_therapist_request'),
+    path('api/process_therapist_request/<int:request_id>/', a_views.process_therapist_request, name='process_therapist_request'),
+    path('api/login/', a_views.login, name='login'),
+
+    path('api/get_blog/', b_views.get_blog, name='get_blog'),
+    path('api/create_blog/', b_views.create_blog, name='create_blog'),
+    path('api/blog_detail/<int:pk>/', b_views.blog_detail, name='blog_detail'),
+    path('api/update_blog/<int:pk>/', b_views.update_blog, name='update_blog'),
+    path('api/delete_blog/<int:pk>/', b_views.delete_blog, name='delete_blog'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

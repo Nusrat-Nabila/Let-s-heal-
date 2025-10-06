@@ -5,12 +5,14 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 # Create your models here.
 class Customer(models.Model):
     customer_name=models.CharField(max_length=100)
-    customer_email=models.EmailField(max_length=100,blank=True,null=True)
+    customer_email=models.EmailField(max_length=100,unique=True,blank=True,null=True)
     customer_phone=models.CharField(max_length=15,blank=True,null=True)
+
     customer_age=models.IntegerField(blank=True,null=True)
-    customer_image=models.ImageField(blank=True,null=True)
+    customer_image=models.ImageField(upload_to='image/',blank=True,null=True)
     customer_password=models.CharField(max_length=200,blank=True,null=True)
     customer_role = models.CharField(max_length=20, default='customer')
+
     customer_gender_choice=(
         ('male','male'),
         ('female','female'),
@@ -20,48 +22,81 @@ class Customer(models.Model):
 
     def __str__(self):
        return self.customer_name
-class Meta:
-        unique_together = ('customer_name', 'customer_email')
-    
     
 class Therapist(models.Model):
     therapist_name=models.CharField(max_length=100)
-    therapist_email=models.EmailField(max_length=100,blank=True,null=True)
+    therapist_email=models.EmailField(max_length=100,unique=True,blank=True,null=True)
     therapist_phone=models.CharField(max_length=15,blank=True,null=True)
+
     year_of_experience=models.IntegerField(blank=True,null=True)
-    therapist_image=models.ImageField(blank=True,null=True)
+    therapist_image=models.ImageField(upload_to='image/',blank=True,null=True)
     therapist_specialization=models.CharField(max_length=100,blank=True,null=True) #psychritist,psychologist
+
     therapist_qualification=models.CharField(max_length=200,blank=True,null=True)  #Mbbs/md
     therapist_status=models.CharField(max_length=100,blank=True,null=True)
-    therapist_licence_number=models.IntegerField(blank=True,null=True)
+    therapist_licence = models.FileField(upload_to="pdf/therapist_license/", blank=True, null=True)
+
     therapist_Serve_for=models.CharField(max_length=100,blank=True,null=True)
     therapist_password=models.CharField(max_length=200,blank=True,null=True)
     therapist_role = models.CharField(max_length=20,blank=True,null=True, default='therapist')
+
     therapist_gender_choice=(
         ('male','male'),
         ('female','female'),
         ('no choice','no choice'), 
     )
     therapist_gender=models.CharField(max_length=150,choices=therapist_gender_choice,default='no choice')
+
     hospital_name=models.CharField(max_length=200,blank=True,null=True)
     hospital_address=models.CharField(max_length=300,blank=True,null=True)
 
     def __str__(self):
        return self.therapist_name
-    class Meta:
-        unique_together = ('therapist_name', 'therapist_email')
+   
+class TherapistRequest(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField(max_length=100, unique=True,blank=True,null=True)
+    phone = models.CharField(max_length=15, blank=True, null=True)
+
+    year_of_experience = models.IntegerField(blank=True, null=True)
+    specialization = models.CharField(max_length=100, blank=True, null=True)
+    qualification = models.CharField(max_length=200, blank=True, null=True)
+
+    gender_choice=(
+        ('male','male'),
+        ('female','female'),
+        ('no choice','no choice'), 
+    )
+    gender=models.CharField(max_length=150,choices=gender_choice,default='no choice')
+
+    hospital_name = models.CharField(max_length=200, blank=True, null=True)
+    hospital_address = models.CharField(max_length=300, blank=True, null=True)
+    password = models.CharField(max_length=200,blank=True,null=True)
+
+    licence_pdf = models.FileField(upload_to="pdf/request/", blank=True, null=True)
+
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('declined', 'Declined'),
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.status})"    
 
 class Admin(models.Model):
     admin_name=models.CharField(max_length=100,blank=True,null=True)
-    admin_email=models.EmailField(max_length=100,blank=True,null=True)
+    admin_email=models.EmailField(max_length=100,unique=True ,blank=True,null=True)
+
     admin_password=models.CharField(max_length=200,blank=True,null=True)
     admin_role = models.CharField(max_length=20, default='admin')
 
     def __str__(self):
        return self.admin_name
     
-    class Meta:
-        unique_together = ('admin_name', 'admin_email')
 
 class UserAuth(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -77,11 +112,12 @@ class UserAuth(models.Model):
        return f"{self.user_name}-{self.user_role}"
     
     class Meta:
-        unique_together = ('user_name', 'user_email','user_password', 'user_role')
+        unique_together = ('user_email','user_role')
     
 class Review(models.Model):
     customer=models.ForeignKey(Customer,on_delete=models.CASCADE)
     therapist=models.ForeignKey(Therapist,on_delete=models.CASCADE)
+
     review_rating=models.IntegerField(blank=True,null=True)
     review_date=models.DateTimeField(auto_now=True,blank=True,null=True)
 
