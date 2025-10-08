@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
 from pathlib import Path
-
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'account.apps.AccountConfig',
     'blog.apps.BlogConfig',
     'chat.apps.ChatConfig',
@@ -60,7 +62,7 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS =[
     "http://localhost:5173",
-    "http:// 127.0.0.1:5173",
+    "http://127.0.0.1:5173",
 ]
 
 ROOT_URLCONF = 'Lets_heal.urls'
@@ -148,3 +150,21 @@ EMAIL_HOST_PASSWORD = 'zmlisqbxuyiibgil'   # <-- your 16-char App Password
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
+REST_FRAMEWORK = {
+  'DEFAULT_AUTHENTICATION_CLASSES': (
+        'account.authentication.UserAuthJWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    )
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=7),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'ALGORITHM': 'HS256',
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+CORS_ALLOW_CREDENTIALS = True

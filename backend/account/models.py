@@ -110,7 +110,11 @@ class UserAuth(models.Model):
 
     def __str__(self):
        return f"{self.user_name}-{self.user_role}"
-    
+
+    @property
+    def is_authenticated(self):
+     return True
+
     class Meta:
         unique_together = ('user_email','user_role')
     

@@ -1,15 +1,20 @@
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view,permission_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.contenttypes.models import ContentType
+from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Customer, Therapist, Admin, UserAuth, Review ,TherapistRequest
 from .serializers import CustomerSerializer, TherapistSerializer, AdminSerializer,UserAuthSerializer, ReviewSerializer ,TherapistRequestSerializer
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 
 #customer signup
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def customer_signup(request):
     serializer = CustomerSerializer(data=request.data)
     if serializer.is_valid():
@@ -24,12 +29,13 @@ def customer_signup(request):
         user_role=customer.customer_role
        )
   
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({"success": True, "data": serializer.data}, status=status.HTTP_201_CREATED)
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 #therapist request for signup
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def therapist_request_signup(request):
     if TherapistRequest.objects.filter(email=request.data.get('email')).exists():
         return Response( {"success": False, "error": "A request with this email already exists."},status=status.HTTP_400_BAD_REQUEST)
@@ -45,21 +51,46 @@ def therapist_request_signup(request):
 
 #List of all therapist requests (for admin)
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def list_therapist_request(request):
+    user = request.user  # DRF already sets this after authentication
+    if not user:
+        return Response({"detail":"User not found"}, status=404)
+    
+    if user.user_role != "admin":
+        return Response({"error":"Not authorized"}, status=403)
+    
     requests = TherapistRequest.objects.all().order_by('-created_at')
     serializer = TherapistRequestSerializer(requests, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+
 #Details of a specific therapist request (for admin)
 @api_view(['GET'])
-def requested_therapist_info(request,requst_id):
-    therapist_req=get_object_or_404(TherapistRequest, id=requst_id)
+@permission_classes([IsAuthenticated])
+def requested_therapist_info(request,request_id):
+    user = request.user
+    if not user:
+        return Response({"detail":"User not found"}, status=404)
+    
+    if user.user_role != "admin":
+        return Response({"error":"Not authorized"}, status=403)
+    
+    therapist_req=get_object_or_404(TherapistRequest, id=request_id)
     serializer=TherapistRequestSerializer(therapist_req)
     return Response(serializer.data,status=status.HTTP_200_OK)
 
 #process therapist request
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def process_therapist_request(request, request_id):
+    user = request.user
+    if not user:
+        return Response({"detail":"User not found"}, status=404)
+
+    if user.user_role != "admin":
+        return Response({"error":"Not authorized"}, status=403)
+    
     action = request.data.get("action")  # "approve" or "decline"
     therapist_req = get_object_or_404(TherapistRequest, id=request_id)
 
@@ -135,14 +166,16 @@ def role_based_response(user_auth):
 
     else:
         return Response({"success": False, "error": "Invalid role"}, status=status.HTTP_400_BAD_REQUEST)
+    return {
+    "success": True,
+    "role": user_auth.user_role,
+    "data": serializer.data
+  }
 
-    return Response(
-        {"success": True, "role": user_auth.user_role, "data": serializer.data},
-        status=status.HTTP_200_OK
-    )
 
 #login for customer,therapist and admin
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def login(request):
     email = request.data.get('email')
     password = request.data.get('password')
@@ -192,28 +225,71 @@ def login(request):
             {"success": False, "error": "Incorrect password"},
             status=status.HTTP_401_UNAUTHORIZED
         )
+    
+    #Generate JWT tokens after successful login
 
-    # Return role-based user data
-    return role_based_response(user_auth)
+    refresh = RefreshToken()
+    refresh['user_id'] = user_auth.id
+    refresh['email'] = user_auth.user_email
+    refresh['role'] = user_auth.user_role
+
+    access_token = str(refresh.access_token)
+    refresh_token = str(refresh)
+
+
+    user_response = role_based_response(user_auth)
+    user_response.update({
+    "access_token": access_token,
+    "refresh_token": refresh_token,
+     })
+    return Response(user_response, status=status.HTTP_200_OK)
+
 
 # get customer list(for admin)
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def list_customer(request):
-    customer=Customer.object.all()
+    user = request.user
+    if not user:
+        return Response({"detail":"User not found"}, status=404)
+
+    if user.user_role != "admin":
+        return Response({"error":"Not authorized"}, status=403)
+    
+    customer=Customer.objects.all()
     serializer=CustomerSerializer(customer,many=True)
     return Response(serializer.data,status=status.HTTP_200_OK)
-
-#view customer details (for admin)
 @api_view(['GET'])
-def view_customer_profile(request,request_id):
-    customer=Customer.object.get(id=request_id)
-    serializer=CustomerSerializer(customer)
-    return Response(serializer.data,status=status.HTTP_200_OK)
+@permission_classes([IsAuthenticated])
+def view_customer_profile(request, request_id):
+    user = request.user  # DRF sets this after authentication
 
-#delete customer (for admin)
+    if not user:
+        return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    customer = get_object_or_404(Customer, id=request_id)
+
+    # Allow admin or the customer himself (compare by email)
+    if user.user_role != "admin" and user.user_email != customer.customer_email:
+        return Response({"error": "Not authorized"}, status=status.HTTP_403_FORBIDDEN)
+
+    serializer = CustomerSerializer(customer)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# Delete customer
 @api_view(['DELETE'])
-def delete_customer(request,customer_id):
-    customer=get_object_or_404(Customer,id=customer_id)
-    customer.delete()
-    return Response({"message":"customer deleted successfully"},status=status.HTTP_204_NO_CONTENT)
+@permission_classes([IsAuthenticated])
+def delete_customer(request, customer_id):
+    user = request.user
+    if not user:
+        return Response({"detail":"User not found"}, status=404)
 
+    customer = get_object_or_404(Customer, id=customer_id)
+
+    # Allow admin or the customer himself
+    if user.user_role != "admin" and user.id != customer.id:
+        return Response({"error":"Not authorized"}, status=403)
+
+    customer.delete()
+    return Response({"message":"Customer deleted successfully"}, status=status.HTTP_204_NO_CONTENT)

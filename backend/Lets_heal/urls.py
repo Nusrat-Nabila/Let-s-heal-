@@ -23,20 +23,31 @@ from blog import views as b_views
 from chat import views as c_views
 from quiz import views as q_views
 from therapy import views as t_views
+from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
+   # Admin
     path('admin/', admin.site.urls),
+
+    # Account app URLs
     path('api/customer_signup/', a_views.customer_signup, name='customer_signup'),
     path('api/therapist_request_signup/', a_views.therapist_request_signup, name='therapist_request_signup'),
     path('api/list_therapist_request/', a_views.list_therapist_request, name='list_therapist_request'),
+    path('api/requested_therapist_info/<int:request_id>/', a_views.requested_therapist_info, name='requested_therapist_info'),
     path('api/process_therapist_request/<int:request_id>/', a_views.process_therapist_request, name='process_therapist_request'),
     path('api/login/', a_views.login, name='login'),
+    path('api/list_customer/', a_views.list_customer, name='list_customer'),
+    path('api/view_customer_profile/<int:request_id>/', a_views.view_customer_profile, name='view_customer_profile'),
+    path('api/delete_customer/<int:customer_id>/', a_views.delete_customer, name='delete_customer'),
 
+#blog app
     path('api/get_blog/', b_views.get_blog, name='get_blog'),
     path('api/create_blog/', b_views.create_blog, name='create_blog'),
     path('api/blog_detail/<int:pk>/', b_views.blog_detail, name='blog_detail'),
     path('api/update_blog/<int:pk>/', b_views.update_blog, name='update_blog'),
     path('api/delete_blog/<int:pk>/', b_views.delete_blog, name='delete_blog'),
+    # JWT token refresh
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
