@@ -293,3 +293,21 @@ def delete_customer(request, customer_id):
 
     customer.delete()
     return Response({"message":"Customer deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_customer_profile(request, pk):
+    user = request.user
+    customer = Customer.objects.filter(pk=pk).first()
+    if not customer:
+        return Response({"error": "Customer not found"}, status=404)
+    
+    if user.email != customer.customer_email:
+        return Response({"error": "Not authorized to update this profile"}, status=403)
+
+    serializer = CustomerSerializer(customer, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

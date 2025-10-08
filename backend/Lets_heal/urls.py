@@ -39,6 +39,7 @@ urlpatterns = [
     path('api/list_customer/', a_views.list_customer, name='list_customer'),
     path('api/view_customer_profile/<int:request_id>/', a_views.view_customer_profile, name='view_customer_profile'),
     path('api/delete_customer/<int:customer_id>/', a_views.delete_customer, name='delete_customer'),
+    path('api/update_customer_profile/<int:customer_id>/', a_views.update_customer_profile, name='update_customer_profile'),
 
 #blog app
     path('api/get_blog/', b_views.get_blog, name='get_blog'),
