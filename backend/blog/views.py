@@ -6,7 +6,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated ,AllowAny
 from rest_framework.decorators import permission_classes
-from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from .models import Blog
 from .serializers import BlogSerializer
@@ -15,28 +14,19 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def get_all_blog(request):
-    blogs = Blog.objects.all().order_by('-blog_created_at')
-    if not blogs.exists():
-            return Response({"message": "No blog found"}, status=status.HTTP_404_NOT_FOUND)
+def search_blog(request):
+    search_query = request.GET.get('search', '').strip() or request.GET.get('q', '').strip()
+
+    if search_query:
+        blogs = Blog.objects.filter(
+            Q(blog_title__icontains=search_query) |
+            Q(blog_author_name__icontains=search_query)
+        ).order_by('-blog_created_at')
+    else:
+        blogs = Blog.objects.all().order_by('-blog_created_at')
+
     serializer = BlogSerializer(blogs, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def search_blog(request):
-    query = request.GET.get('q', '')
-    if query:
-        blog = Blog.objects.filter(Q(blog_title__icontains=query) | Q(blog_author_name__icontains=query)).order_by('-blog_created_at')
-
-        if not blog.exists():
-            return Response({"message": "No blog found"}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = BlogSerializer(blog, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    # handle case when no query parameter is provided
-    return Response({"message": "Please provide a search query"}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
