@@ -68,7 +68,7 @@ class TherapistRequest(models.Model):
         ('no choice','no choice'), 
     )
     gender=models.CharField(max_length=150,choices=gender_choice,default='no choice')
-
+    image=models.ImageField(upload_to='image/',blank=True,null=True)
     hospital_name = models.CharField(max_length=200, blank=True, null=True)
     hospital_address = models.CharField(max_length=300, blank=True, null=True)
     password = models.CharField(max_length=200,blank=True,null=True)

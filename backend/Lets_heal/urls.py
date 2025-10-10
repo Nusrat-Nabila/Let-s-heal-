@@ -41,12 +41,16 @@ urlpatterns = [
     path('api/delete_customer/<int:customer_id>/', a_views.delete_customer, name='delete_customer'),
     path('api/update_customer_profile/<int:customer_id>/', a_views.update_customer_profile, name='update_customer_profile'),
 
-#blog app
-    path('api/get_blog/', b_views.get_blog, name='get_blog'),
+    #blog app
+    path('api/get_all_blog/', b_views.get_all_blog, name='get_all_blog'),
+    path('api/search_blog/', b_views.search_blog, name='search_blog'),
+    path('api/get_my_blog/', b_views.get_my_blog, name='get_my_blog'),
     path('api/create_blog/', b_views.create_blog, name='create_blog'),
     path('api/blog_detail/<int:pk>/', b_views.blog_detail, name='blog_detail'),
     path('api/update_blog/<int:pk>/', b_views.update_blog, name='update_blog'),
     path('api/delete_blog/<int:pk>/', b_views.delete_blog, name='delete_blog'),
+
+    
     # JWT token refresh
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]

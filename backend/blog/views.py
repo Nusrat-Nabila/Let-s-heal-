@@ -12,26 +12,38 @@ from .models import Blog
 from .serializers import BlogSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def get_blog(request):
-    query = request.GET.get('search', None)  
-    my_posts = request.GET.get('my_posts', None)    
-     
+def get_all_blog(request):
     blogs = Blog.objects.all().order_by('-blog_created_at')
-    user = None
-    try:
-      user = request.user
-    except:
-       pass
+    if not blogs.exists():
+            return Response({"message": "No blog found"}, status=status.HTTP_404_NOT_FOUND)
+    serializer = BlogSerializer(blogs, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def search_blog(request):
+    query = request.GET.get('q', '')
     if query:
-        blogs = blogs.filter( Q(blog_title__icontains=query) |  Q(blog_author__user_name__icontains=query))
+        blog = Blog.objects.filter(Q(blog_title__icontains=query) | Q(blog_author_name__icontains=query)).order_by('-blog_created_at')
 
-    if my_posts == 'true':
-     if not user:
-        return Response({"detail":"Authentication required for my_posts"}, status=401)
-    blogs = blogs.filter(blog_author=user)
+        if not blog.exists():
+            return Response({"message": "No blog found"}, status=status.HTTP_404_NOT_FOUND)
 
+        serializer = BlogSerializer(blog, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    # handle case when no query parameter is provided
+    return Response({"message": "Please provide a search query"}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_my_blog(request):
+    blogs = Blog.objects.filter(blog_author=request.user).order_by('-blog_created_at')
+    if not blogs.exists():
+            return Response({"message": "No blog found"}, status=status.HTTP_404_NOT_FOUND)
     serializer = BlogSerializer(blogs, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -39,20 +51,16 @@ def get_blog(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_blog(request):
-    user = request.user
-    if not user:
-        return Response({"detail":"User not found"}, status=404)
-
     serializer = BlogSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save(blog_author=user)
+        serializer.save(blog_author=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def blog_detail(request, pk): 
-    blog = Blog.objects.filter(pk=pk).first()
+    blog = Blog.objects.get(pk=pk)
     if not blog:
         return Response({"error":"Blog not found"}, status=404)
     serializer = BlogSerializer(blog)
@@ -61,11 +69,7 @@ def blog_detail(request, pk):
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def update_blog(request, pk):
-    user = request.user
-    if not user:
-        return Response({"detail":"User not found"}, status=404)
-    
-    blog = Blog.objects.filter(pk=pk, blog_author=user).first()
+    blog = Blog.objects.filter(pk=pk, blog_author=request.user).first()
     if not blog:
         return Response({"error":"Blog not found or unauthorized"}, status=404)
     serializer = BlogSerializer(blog, data=request.data)
@@ -82,12 +86,10 @@ def delete_blog(request, pk):
         pk = int(str(pk).strip())
     except ValueError:
         return Response({"error": "Invalid blog ID"}, status=400)
-
-    user = request.user
-    blog = Blog.objects.filter(pk=pk, blog_author=user).first()
+    
+    blog = Blog.objects.filter(pk=pk, blog_author=request.user).first()
     if not blog:
         return Response({"error":"Blog not found or unauthorized"}, status=404)
-
     blog.delete()
-    return Response({"success": True}, status=204)
+    return Response({"success": True}, status=200)
 

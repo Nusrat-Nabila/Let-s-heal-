@@ -9,7 +9,6 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Customer, Therapist, Admin, UserAuth, Review ,TherapistRequest
 from .serializers import CustomerSerializer, TherapistSerializer, AdminSerializer,UserAuthSerializer, ReviewSerializer ,TherapistRequestSerializer
-from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 #customer signup
@@ -53,14 +52,9 @@ def therapist_request_signup(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_therapist_request(request):
-    user = request.user  # DRF already sets this after authentication
-    if not user:
-        return Response({"detail":"User not found"}, status=404)
-    
-    if user.user_role != "admin":
-        return Response({"error":"Not authorized"}, status=403)
-    
     requests = TherapistRequest.objects.all().order_by('-created_at')
+    if not requests.exists():
+            return Response({"message": "No therapist request for registration is found"}, status=status.HTTP_404_NOT_FOUND)
     serializer = TherapistRequestSerializer(requests, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -69,14 +63,9 @@ def list_therapist_request(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def requested_therapist_info(request,request_id):
-    user = request.user
-    if not user:
-        return Response({"detail":"User not found"}, status=404)
-    
-    if user.user_role != "admin":
-        return Response({"error":"Not authorized"}, status=403)
-    
     therapist_req=get_object_or_404(TherapistRequest, id=request_id)
+    if not therapist_req:
+            return Response({"error":" requested Therapist info is not found"}, status=404)
     serializer=TherapistRequestSerializer(therapist_req)
     return Response(serializer.data,status=status.HTTP_200_OK)
 
@@ -84,13 +73,6 @@ def requested_therapist_info(request,request_id):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def process_therapist_request(request, request_id):
-    user = request.user
-    if not user:
-        return Response({"detail":"User not found"}, status=404)
-
-    if user.user_role != "admin":
-        return Response({"error":"Not authorized"}, status=403)
-    
     action = request.data.get("action")  # "approve" or "decline"
     therapist_req = get_object_or_404(TherapistRequest, id=request_id)
 
@@ -149,84 +131,35 @@ def process_therapist_request(request, request_id):
     return Response({"success": False, "error": "Invalid action"}, status=status.HTTP_400_BAD_REQUEST)
 
 
- #function to get role-based user data 
-def role_based_response(user_auth):
-   
-    if user_auth.user_role == 'customer':
-        customer = get_object_or_404(Customer, customer_email=user_auth.user_email)
-        serializer = CustomerSerializer(customer)
-
-    elif user_auth.user_role == 'therapist':
-        therapist = get_object_or_404(Therapist, therapist_email=user_auth.user_email)
-        serializer = TherapistSerializer(therapist)
-
-    elif user_auth.user_role == 'admin':
-        admin = get_object_or_404(Admin, admin_email=user_auth.user_email)
-        serializer = AdminSerializer(admin)
-
-    else:
-        return Response({"success": False, "error": "Invalid role"}, status=status.HTTP_400_BAD_REQUEST)
-    return {
-    "success": True,
-    "role": user_auth.user_role,
-    "data": serializer.data
-  }
-
-
 #login for customer,therapist and admin
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login(request):
+    role = request.data.get('role')
     email = request.data.get('email')
     password = request.data.get('password')
-    selected_role = request.data.get('role', None)  # only for multiple roles
 
-    if not email or not password:
-        return Response(
-            {"success": False, "error": "Email and password are required"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    # get all users with this email
-    users = UserAuth.objects.filter(user_email=email)
-    if not users.exists():
-        return Response(
-            {"success": False, "error": "User not found"},
-            status=status.HTTP_404_NOT_FOUND
-        )
+    if not email or not password or not role:
+        return Response({"success": False, "error": "Email, password, and role are required"}, status=status.HTTP_400_BAD_REQUEST)
 
-    # If multiple roles exist and role not selected yet
-    if users.count() > 1 and not selected_role:
-        roles = [user.user_role for user in users]
-        return Response(
-            {
-                "success": True,
-                "email": email,
-                "roles": roles,
-                "message": "Multiple roles found. Please select a role to continue."
-            },
-            status=status.HTTP_200_OK
-        )
+    user_auth = UserAuth.objects.filter(user_email=email, user_role=role).first()
+    if not user_auth: 
+        return Response({"success": False, "error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    # Determine which user to login as
-    if selected_role:
-        try:
-            user_auth = users.get(user_role=selected_role)
-        except UserAuth.DoesNotExist:
-            return Response(
-                {"success": False, "error": f"Role '{selected_role}' not found for this email"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-    else:
-        user_auth = users.first()  # only one role exists
-
-    # Check password 
     if user_auth.user_password != password:
-        return Response(
-            {"success": False, "error": "Incorrect password"},
-            status=status.HTTP_401_UNAUTHORIZED
-        )
-    
-    #Generate JWT tokens after successful login
+        return Response({"success": False, "error": "Incorrect password"}, status=status.HTTP_401_UNAUTHORIZED)
+
+    if role == "customer":
+        user = get_object_or_404(Customer, customer_email=email)
+        serializer = CustomerSerializer(user)
+    elif role == "therapist":
+        user = get_object_or_404(Therapist, therapist_email=email)
+        serializer = TherapistSerializer(user)
+    elif role == "admin":
+        user = get_object_or_404(Admin, admin_email=email)
+        serializer = AdminSerializer(user)
+    else:
+        return Response({"success": False, "error": "Invalid role"}, status=status.HTTP_400_BAD_REQUEST)
 
     refresh = RefreshToken()
     refresh['user_id'] = user_auth.id
@@ -236,43 +169,35 @@ def login(request):
     access_token = str(refresh.access_token)
     refresh_token = str(refresh)
 
-
-    user_response = role_based_response(user_auth)
-    user_response.update({
+    return Response({
+    "success": True,
+    "role": user_auth.user_role,
+    "data": serializer.data,
     "access_token": access_token,
     "refresh_token": refresh_token,
-     })
-    return Response(user_response, status=status.HTTP_200_OK)
+    },status=status.HTTP_200_OK)
 
 
 # get customer list(for admin)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_customer(request):
-    user = request.user
-    if not user:
-        return Response({"detail":"User not found"}, status=404)
-
-    if user.user_role != "admin":
-        return Response({"error":"Not authorized"}, status=403)
-    
     customer=Customer.objects.all()
+    if not customer.exists():
+            return Response({"message": "No customer found"}, status=status.HTTP_404_NOT_FOUND)
     serializer=CustomerSerializer(customer,many=True)
     return Response(serializer.data,status=status.HTTP_200_OK)
+
+# View customer profile 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def view_customer_profile(request, request_id):
-    user = request.user  # DRF sets this after authentication
-
-    if not user:
-        return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-
+    user = request.user
     customer = get_object_or_404(Customer, id=request_id)
-
-    # Allow admin or the customer himself (compare by email)
+    if not customer:
+            return Response({"message": "No customer found"}, status=status.HTTP_404_NOT_FOUND)
     if user.user_role != "admin" and user.user_email != customer.customer_email:
         return Response({"error": "Not authorized"}, status=status.HTTP_403_FORBIDDEN)
-
     serializer = CustomerSerializer(customer)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -282,15 +207,11 @@ def view_customer_profile(request, request_id):
 @permission_classes([IsAuthenticated])
 def delete_customer(request, customer_id):
     user = request.user
-    if not user:
-        return Response({"detail":"User not found"}, status=404)
-
     customer = get_object_or_404(Customer, id=customer_id)
-
-    # Allow admin or the customer himself
+    if not customer:
+        return Response({"error": "Customer not found"}, status=404)
     if user.user_role != "admin" and user.id != customer.id:
         return Response({"error":"Not authorized"}, status=403)
-
     customer.delete()
     return Response({"message":"Customer deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
 
@@ -301,7 +222,6 @@ def update_customer_profile(request, pk):
     customer = Customer.objects.filter(pk=pk).first()
     if not customer:
         return Response({"error": "Customer not found"}, status=404)
-    
     if user.email != customer.customer_email:
         return Response({"error": "Not authorized to update this profile"}, status=403)
 
