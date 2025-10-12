@@ -38,6 +38,7 @@ class QuizResult(models.Model):
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     score = models.IntegerField(blank=True,null=True)
+    result_text = models.TextField(blank=True,null=True)
     taken_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

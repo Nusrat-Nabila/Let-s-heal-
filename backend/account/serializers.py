@@ -68,6 +68,7 @@ class TherapistRequestSerializer(serializers.ModelSerializer):
             'specialization',
             'qualification',
             'gender',
+            'image',
             'hospital_name',
             'hospital_address',
             'password',

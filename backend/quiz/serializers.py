@@ -39,5 +39,6 @@ class QuizResultSerializer(serializers.ModelSerializer):
             'quiz',
             'customer',
             'score',
+            'result_text'
             'taken_at',
         ]

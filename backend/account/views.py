@@ -202,32 +202,25 @@ def view_customer_profile(request, request_id):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+# Update customer profile
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_customer_profile(request, customer_id):
+    user = request.user
+    customer = get_object_or_404(Customer, id=customer_id) 
+    serializer = CustomerSerializer(customer, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 # Delete customer
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_customer(request, customer_id):
     user = request.user
     customer = get_object_or_404(Customer, id=customer_id)
-    if not customer:
-        return Response({"error": "Customer not found"}, status=404)
-    if user.user_role != "admin" and user.id != customer.id:
-        return Response({"error":"Not authorized"}, status=403)
+    if user.user_role != "admin" and user.user_email != customer.customer_email:
+        return Response({"error": "Not authorized"}, status=403)
     customer.delete()
-    return Response({"message":"Customer deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
-
-@api_view(['PUT'])
-@permission_classes([IsAuthenticated])
-def update_customer_profile(request, pk):
-    user = request.user
-    customer = Customer.objects.filter(pk=pk).first()
-    if not customer:
-        return Response({"error": "Customer not found"}, status=404)
-    if user.email != customer.customer_email:
-        return Response({"error": "Not authorized to update this profile"}, status=403)
-
-    serializer = CustomerSerializer(customer, data=request.data, partial=True)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({"message": "Customer deleted successfully"}, status=status.HTTP_204_NO_CONTENT)

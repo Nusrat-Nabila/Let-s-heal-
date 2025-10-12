@@ -18,10 +18,7 @@ def search_blog(request):
     search_query = request.GET.get('search', '').strip() or request.GET.get('q', '').strip()
 
     if search_query:
-        blogs = Blog.objects.filter(
-            Q(blog_title__icontains=search_query) |
-            Q(blog_author_name__icontains=search_query)
-        ).order_by('-blog_created_at')
+        blogs = Blog.objects.filter(Q(blog_title__icontains=search_query) |Q(blog_author_name__icontains=search_query)).order_by('-blog_created_at')
     else:
         blogs = Blog.objects.all().order_by('-blog_created_at')
 
@@ -59,10 +56,10 @@ def blog_detail(request, pk):
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def update_blog(request, pk):
-    blog = Blog.objects.filter(pk=pk, blog_author=request.user).first()
-    if not blog:
-        return Response({"error":"Blog not found or unauthorized"}, status=404)
-    serializer = BlogSerializer(blog, data=request.data)
+    blog = Blog.objects.get(pk=pk)
+    if blog.blog_author != request.user:
+        return Response({"error": "You are not authorized to update this blog"}, status=status.HTTP_403_FORBIDDEN)
+    serializer = BlogSerializer(blog, data=request.data, partial=True)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -72,14 +69,9 @@ def update_blog(request, pk):
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_blog(request, pk):
-    try:
-        pk = int(str(pk).strip())
-    except ValueError:
-        return Response({"error": "Invalid blog ID"}, status=400)
-    
-    blog = Blog.objects.filter(pk=pk, blog_author=request.user).first()
-    if not blog:
-        return Response({"error":"Blog not found or unauthorized"}, status=404)
-    blog.delete()
-    return Response({"success": True}, status=200)
+    blog = Blog.objects.get(pk=pk)
+    if blog.blog_author != request.user:
+        return Response({"error": "You are not authorized to delete this blog"}, status=status.HTTP_403_FORBIDDEN)
 
+    blog.delete()
+    return Response({"success": True, "message": "Blog deleted successfully"}, status=status.HTTP_200_OK)
