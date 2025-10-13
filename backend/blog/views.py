@@ -44,14 +44,30 @@ def create_blog(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+#view a blog post detatils
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def blog_detail(request, pk): 
-    blog = Blog.objects.get(pk=pk)
-    if not blog:
-        return Response({"error":"Blog not found"}, status=404)
+    try:
+        blog = Blog.objects.get(pk=pk)
+    except Blog.DoesNotExist:
+        return Response({"error": "Blog not found"}, status=status.HTTP_404_NOT_FOUND)
+
     serializer = BlogSerializer(blog)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    data = serializer.data
+    data['is_author'] = False  # default
+
+    jwt_auth = JWTAuthentication()
+    try:
+        user_auth_tuple = jwt_auth.authenticate(request)
+        if user_auth_tuple is not None:
+            user, token = user_auth_tuple
+            if user == blog.blog_author:
+                data['is_author'] = True
+    except Exception:
+        pass
+
+    return Response(data, status=status.HTTP_200_OK)
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])

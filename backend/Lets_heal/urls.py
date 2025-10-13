@@ -55,7 +55,8 @@ urlpatterns = [
     path('api/update_therapist_profile/<int:therapist_id>/', t_views.update_therapist_profile, name='update_therapist_profile'),
     path('api/delete_therapist/<int:therapist_id>/', t_views.delete_therapist, name='delete_therapist'),
     path('api/book_appointment/<int:therapist_id>/', t_views.book_appointment, name='book_appointment'),
-    path('api/customer_appointment_history/', t_views.customer_appointment_history, name='customer_appointment_history'),
+    path('api/customer_appointment_prev_history/', t_views.customer_appointment_prev_history, name='customer_appointment_prev_history'),
+    path('api/customer_appointment_current_history/', t_views.customer_appointment_current_history, name='customer_appointment_current_history'),
     path('api/therapist_appointment_prev_history/', t_views.therapist_appointment_prev_history, name='therapist_appointment_prev_history'),
     path('api/therapist_appointment_current_history/', t_views.therapist_appointment_current_history, name='therapist_appointment_current_history'),
     

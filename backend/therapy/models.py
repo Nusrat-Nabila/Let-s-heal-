@@ -12,7 +12,8 @@ class Appointment(models.Model):
     appointment_time=models.TimeField(blank=False, null=False)
     hospital_name=models.CharField(max_length=200,blank=True,null=True)
     hospital_address=models.CharField(max_length=300,blank=True,null=True)
-    appointment_status=models.CharField(max_length=100,blank=True,null=True)
-
+    created_at = models.DateTimeField(auto_now_add=True)
+    
     def __str__(self):
         return f"Appointment of {self.customer.customer_name} with {self.therapist.therapist_name}"
+    

@@ -14,5 +14,5 @@ class AppointmentSerializer(serializers.ModelSerializer):
             'appointment_time',
             'hospital_name',
             'hospital_address',
-            'appointment_status',
+            'created_at'
         ]

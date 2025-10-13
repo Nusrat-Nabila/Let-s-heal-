@@ -2,7 +2,6 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from django.contrib.contenttypes.models import ContentType
 from account.models import Customer, Therapist
 from account.serializers import TherapistSerializer
 from rest_framework.permissions import IsAuthenticated ,AllowAny
@@ -13,6 +12,7 @@ from .serializers import AppointmentSerializer
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
+from datetime import  timedelta
 # Create your views here.
 
 #view therapist list(for admin and customer)
@@ -26,12 +26,8 @@ def search_therapist(request):
     therapists = Therapist.objects.all().order_by('therapist_name')
     query = request.GET.get('search', '').strip()
     if query:
-        therapists = therapists.filter(
-            Q(therapist_name__icontains=query) |
-            Q(therapist_specialization__icontains=query) |
-            Q(hospital_name__icontains=query)
-        )
-
+        therapists = therapists.filter(Q(therapist_name__icontains=query) |Q(therapist_specialization__icontains=query) |Q(hospital_name__icontains=query))
+        
     specialty = request.GET.get('specialty', '')
     hospital = request.GET.get('hospital', '')
     gender = request.GET.get('gender', '')
@@ -102,9 +98,9 @@ def delete_therapist(request,therapist_id):
 def book_appointment(request,therapist_id):
     user = request.user
     try:
-        customer = Customer.objects.get(customer_email=user.user_email )
+        customer = Customer.objects.get(customer_email=user.user_email and user.user_role == "customer")
     except Customer.DoesNotExist:
-        return Response({"error": "Only customers can book appointments."}, status=status.HTTP_403_FORBIDDEN)
+        return Response({"error": "Only customers can book appointment"}, status=status.HTTP_403_FORBIDDEN)
 
    
     therapist_id = therapist_id
@@ -114,6 +110,7 @@ def book_appointment(request,therapist_id):
     appointment_time = request.data.get('appointment_time')
     hospital_name=request.data.get("hospital_name")
     hospital_address=request.data.get('hospital_address')
+    created_at=request.data.get('created_at')
 
     if not therapist_id or not appointment_date or not appointment_time or not appointment_type or not consultation_type or not hospital_name or not hospital_address:
         return Response({"error": "Therapist, date,time ,appointment type ,consultation type ,hospital_name and hospital_address are required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -139,13 +136,49 @@ def book_appointment(request,therapist_id):
     
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
- #customer appointment history      
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def cancel_appointment(request, appointment_id):
+    user = request.user
+    customer = Customer.objects.get(customer_email=user.user_email and user.user_role == "customer")
+    appointment = Appointment.objects.get(id=appointment_id)
+    if appointment.customer != customer:
+        return Response({"error": "You are not authorized to cancel this appointment."},status=status.HTTP_403_FORBIDDEN)
+    c_t = timezone.now()
+    t = c_t - appointment.created_at
+    if t > timedelta(hours=5):
+        return Response({"error": "You can only cancel your appointment within 5 hours after booking."},status=status.HTTP_400_BAD_REQUEST )
+    appointment.delete()
+    send_mail (
+        "Appointment Cancellation Confirmation",
+        f"Your appointment with {appointment.therapist.therapist_name} on {appointment.appointment_date} at {appointment.appointment_time} has been successfully cancelled.",
+        settings.DEFAULT_FROM_EMAIL,
+        [customer.customer_email],
+        fail_silently=False,)
+    return Response({"message": "Appointment cancelled successfully."},status=status.HTTP_200_OK)
+
+ #customer previous booking history    
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def customer_appointment_history(request):
+def customer_appointment_prev_history(request):
     customer=Customer.objects.get(customer_email=request.user.user_email)
-    appointment=Appointment.objects.filter(customer=customer).order_by('-appointment_date', '-appointment_time')
+    now = timezone.now()
+    today = now.date()
+    current_time = now.time()
+    appointment=Appointment.objects.filter(customer=customer).exclude(Q(appointment_date__gt=today)|Q(appointment_date=today,appointment_time__lt=current_time)).order_by('-appointment_date', '-appointment_time')
+    serializer=AppointmentSerializer(appointment,many=True)
+    return Response(serializer.data,status=status.HTTP_200_OK)
+
+ #customer current booking history  
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def customer_appointment_current_history(request):
+    customer=Customer.objects.get(customer_email=request.user.user_email)
+    now = timezone.now()
+    today = now.date()
+    current_time = now.time()
+    appointment=Appointment.objects.filter(customer=customer).exclude(Q(appointment_date=today, appointment_time__gt=current_time)).order_by('-appointment_date', '-appointment_time')
     serializer=AppointmentSerializer(appointment,many=True)
     return Response(serializer.data,status=status.HTTP_200_OK)
 
@@ -156,7 +189,8 @@ def therapist_appointment_prev_history(request):
     therapist=Therapist.objects.get(therapist_email=request.user.user_email)
     now = timezone.now()
     today = now.date()
-    appointment=Appointment.objects.filter(therapist=therapist).exclude(Q(appointment_date__gt=today)).order_by('-appointment_date', '-appointment_time')
+    current_time = now.time()
+    appointment=Appointment.objects.filter(therapist=therapist).exclude(Q(appointment_date__gt=today)|Q(appointment_date=today,appointment_time__lt=current_time)).order_by('-appointment_date', '-appointment_time')
     serializer=AppointmentSerializer(appointment,many=True)
     return Response(serializer.data,status=status.HTTP_200_OK)
 
