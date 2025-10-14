@@ -1,7 +1,7 @@
 from django.db import models
 
 # Create your models here.
-from account.models import Customer, Therapist 
+from account.models import Customer, Therapist,Hospital
 
 class Appointment(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
@@ -10,10 +10,10 @@ class Appointment(models.Model):
     appointment_type = models.CharField(max_length=100, blank=False, null=False)#new patient/follow up
     appointment_date = models.DateField(blank=False, null=False)
     appointment_time=models.TimeField(blank=False, null=False)
-    hospital_name=models.CharField(max_length=200,blank=True,null=True)
-    hospital_address=models.CharField(max_length=300,blank=True,null=True)
+    hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
         return f"Appointment of {self.customer.customer_name} with {self.therapist.therapist_name}"
     
+      

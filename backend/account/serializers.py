@@ -1,6 +1,16 @@
 # serializers.py
 from rest_framework import serializers
-from .models import Customer, Therapist, Admin, UserAuth, Review ,TherapistRequest
+from .models import Customer, Therapist, Admin, UserAuth, Review ,TherapistRequest,Hospital
+
+class HospitalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Hospital
+        fields = [
+            'id',
+            'name',
+            'address',
+        ]
+
 
 class CustomerSerializer(serializers.ModelSerializer):
     
@@ -50,8 +60,7 @@ class TherapistSerializer(serializers.ModelSerializer):
             'therapist_password',
             'therapist_role',
             'therapist_gender',
-            'hospital_name',
-            'hospital_address',
+            'hospital',
         ]
 
 class TherapistRequestSerializer(serializers.ModelSerializer):
@@ -69,8 +78,7 @@ class TherapistRequestSerializer(serializers.ModelSerializer):
             'qualification',
             'gender',
             'image',
-            'hospital_name',
-            'hospital_address',
+            'hospital',
             'password',
             'confirm_password',
             'licence_pdf',

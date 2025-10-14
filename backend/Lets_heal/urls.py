@@ -1,19 +1,4 @@
-"""
-URL configuration for Lets_heal project.
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import path
 from django.conf import settings
@@ -40,6 +25,11 @@ urlpatterns = [
     path('api/view_customer_profile/<int:request_id>/', a_views.view_customer_profile, name='view_customer_profile'),
     path('api/delete_customer/<int:customer_id>/', a_views.delete_customer, name='delete_customer'),
     path('api/update_customer_profile/<int:customer_id>/', a_views.update_customer_profile, name='update_customer_profile'),
+    path('api/create_hospital/', a_views.create_hospital, name='create_hospital'),
+    path('api/view_hospital_list/', a_views.view_hospital_list, name='view_hospital_list'),
+    path('api/view_specific_hospital_info/<int:pk>/', a_views.view_specific_hospital_info, name='view_specific_hospital_info'),
+    path('api/update_hospital/<int:pk>/', a_views.update_hospital, name='update_hospital'),
+    path('api/delete_hospital/<int:pk>/', a_views.delete_hospital, name='delete_hospital'),
 
     #blog app
     path('api/search_blog/', b_views.search_blog, name='search_blog'),
@@ -54,12 +44,12 @@ urlpatterns = [
     path('api/view_therapist_profile/<int:therapist_id>/', t_views.view_therapist_profile, name='view_therapist_profile'),
     path('api/update_therapist_profile/<int:therapist_id>/', t_views.update_therapist_profile, name='update_therapist_profile'),
     path('api/delete_therapist/<int:therapist_id>/', t_views.delete_therapist, name='delete_therapist'),
-    path('api/book_appointment/<int:pk>/', t_views.book_appointment, name='book_appointment'),
+    path('api/book_appointment/<int:therapist_id>/', t_views.book_appointment, name='book_appointment'),
     path('api/customer_appointment_prev_history/', t_views.customer_appointment_prev_history, name='customer_appointment_prev_history'),
     path('api/customer_appointment_current_history/', t_views.customer_appointment_current_history, name='customer_appointment_current_history'),
     path('api/therapist_appointment_prev_history/', t_views.therapist_appointment_prev_history, name='therapist_appointment_prev_history'),
     path('api/therapist_appointment_current_history/', t_views.therapist_appointment_current_history, name='therapist_appointment_current_history'),
-    
+    path('api/cancel_appointment/<int:appointment_id>/', t_views.cancel_appointment, name='cancel_appointment'),
    
     # JWT token refresh
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

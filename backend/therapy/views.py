@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from account.models import Customer, Therapist
+from account.models import Customer, Therapist,Hospital
 from account.serializers import TherapistSerializer
 from rest_framework.permissions import IsAuthenticated ,AllowAny
 from rest_framework.decorators import permission_classes
@@ -22,8 +22,8 @@ def search_therapist(request):
     therapists = Therapist.objects.all().order_by('therapist_name')
     query = request.GET.get('search', '').strip()
     if query:
-        therapists = therapists.filter(Q(therapist_name__icontains=query) |Q(therapist_specialization__icontains=query) |Q(hospital_name__icontains=query))
-        
+        therapists = therapists.filter(Q(therapist_name__icontains=query) |Q(therapist_specialization__icontains=query) |Q(hospital__name__icontains=query)).distinct()
+
     specialty = request.GET.get('specialty', '')
     hospital = request.GET.get('hospital', '')
     gender = request.GET.get('gender', '')
@@ -33,7 +33,7 @@ def search_therapist(request):
         therapists = therapists.filter(therapist_specialization__iexact=specialty)
 
     if hospital and hospital != 'All Hospitals':
-        therapists = therapists.filter(hospital_name__iexact=hospital)
+        therapists = therapists.filter(hospital__name__iexact=hospital)
 
     if gender and gender != 'Any Gender':
         therapists = therapists.filter(therapist_gender__iexact=gender)
@@ -64,9 +64,9 @@ def update_therapist_profile(request,therapist_id):
     user = request.user
     therapist = Therapist.objects.filter(pk=therapist_id).first()
     if not therapist:
-        return Response({"error": "therapist not found"}, status=404)
+        return Response({"error": "therapist not found"}, status=status.HTTP_404_NOT_FOUND)
     if user.user_role != "therapist" and user.user_email != therapist.therapist_email :
-        return Response({"error": "Not authorized to update this profile"}, status=403)
+        return Response({"error": "Not authorized to update this profile"}, status=status.HTTP_403_FORBIDDEN)
 
     serializer = TherapistSerializer(therapist, data=request.data, partial=True)
     if serializer.is_valid():
@@ -90,56 +90,53 @@ def delete_therapist(request,therapist_id):
 # view for book appointment
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def book_appointment(request,pk):
+def book_appointment(request, therapist_id):
     user = request.user
     if user.user_role != "customer":
-     return Response({"error": "Only customers can book appointment"}, status=status.HTTP_403_FORBIDDEN)
+        return Response({"error": "Only customers can book appointment"}, status=status.HTTP_403_FORBIDDEN)
+
     try:
-       customer = Customer.objects.get(customer_email=user.user_email)
+        customer = Customer.objects.get(customer_email=user.user_email)
     except Customer.DoesNotExist:
-       return Response({"error": "Customer not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"error": "Customer not found."}, status=status.HTTP_404_NOT_FOUND)
 
-
-   
-    therapist = Therapist.objects.get(id=pk)
-    appointment_type=request.data.get('appointment_type')
+    therapist = get_object_or_404(Therapist, id=therapist_id)
+    appointment_type = request.data.get('appointment_type')
     consultation_type = request.data.get('consultation_type')
     appointment_date = request.data.get('appointment_date')
     appointment_time = request.data.get('appointment_time')
-    hospital_name=request.data.get("hospital_name")
-    hospital_address=request.data.get('hospital_address')
-    created_at=request.data.get('created_at')
+    hospital_id = request.data.get('hospital')
 
-    if not appointment_date or not appointment_time or not appointment_type or not consultation_type or not hospital_name or not hospital_address:
-        return Response({"error": " date,time ,appointment type ,consultation type ,hospital_name and hospital_address are required."}, status=status.HTTP_400_BAD_REQUEST)
+    if not appointment_type or not consultation_type or not appointment_date or not appointment_time or not hospital_id:
+        return Response({"error": "All fields are required."}, status=status.HTTP_400_BAD_REQUEST)
 
+    hospital = get_object_or_404(Hospital, id=hospital_id)
 
-    therapist = Therapist.objects.get(id=pk)
-    current_appointment = Appointment.objects.filter(therapist=therapist,appointment_date=appointment_date).count()
-
+    current_appointment = Appointment.objects.filter(therapist=therapist, appointment_date=appointment_date).count()
     if current_appointment >= 80:
         return Response({"error": "This therapist has reached the daily limit of 80 patients."}, status=status.HTTP_400_BAD_REQUEST)
 
     serializer = AppointmentSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save(customer=customer,therapist=therapist)
+        serializer.save(customer=customer, therapist=therapist, hospital=hospital)
         send_mail(
-            "About appointment booking ",
+            "About appointment booking",
             "Your appointment is booked successfully!",
             settings.DEFAULT_FROM_EMAIL,
             [customer.customer_email],
             fail_silently=False,
         )
-        return Response({"message": "your appointment booked successfully!", "data": serializer.data},status=status.HTTP_200_OK)
-    
-    else:
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message": "Appointment booked successfully!", "data": serializer.data}, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def cancel_appointment(request, appointment_id):
     user = request.user
-    customer = Customer.objects.get(customer_email=user.user_email and user.user_role == "customer")
+    if user.user_role != "customer":
+        return Response({"error": "Only customers can cancel appointments"}, status=status.HTTP_403_FORBIDDEN)
+    
+    customer = Customer.objects.get(customer_email=user.user_email)
     appointment = Appointment.objects.get(id=appointment_id)
     if appointment.customer != customer:
         return Response({"error": "You are not authorized to cancel this appointment."},status=status.HTTP_403_FORBIDDEN)
@@ -164,7 +161,7 @@ def customer_appointment_prev_history(request):
     now = timezone.now()
     today = now.date()
     current_time = now.time()
-    appointment=Appointment.objects.filter(customer=customer).exclude(Q(appointment_date__gt=today)|Q(appointment_date=today,appointment_time__lt=current_time)).order_by('-appointment_date', '-appointment_time')
+    appointment=Appointment.objects.filter(customer=customer).filter(Q(appointment_date__gt=today)|Q(appointment_date=today,appointment_time__lt=current_time)).order_by('-appointment_date', '-appointment_time')
     serializer=AppointmentSerializer(appointment,many=True)
     return Response(serializer.data,status=status.HTTP_200_OK)
 
@@ -176,7 +173,7 @@ def customer_appointment_current_history(request):
     now = timezone.now()
     today = now.date()
     current_time = now.time()
-    appointment=Appointment.objects.filter(customer=customer).exclude(Q(appointment_date=today, appointment_time__gt=current_time)).order_by('-appointment_date', '-appointment_time')
+    appointment = Appointment.objects.filter(customer=customer).filter(Q(appointment_date__gt=today) |Q(appointment_date=today, appointment_time__gte=current_time))
     serializer=AppointmentSerializer(appointment,many=True)
     return Response(serializer.data,status=status.HTTP_200_OK)
 
@@ -188,7 +185,7 @@ def therapist_appointment_prev_history(request):
     now = timezone.now()
     today = now.date()
     current_time = now.time()
-    appointment=Appointment.objects.filter(therapist=therapist).exclude(Q(appointment_date__gt=today)|Q(appointment_date=today,appointment_time__lt=current_time)).order_by('-appointment_date', '-appointment_time')
+    appointment=Appointment.objects.filter(therapist=therapist).filter(Q(appointment_date__gt=today)|Q(appointment_date=today,appointment_time__lt=current_time)).order_by('-appointment_date', '-appointment_time')
     serializer=AppointmentSerializer(appointment,many=True)
     return Response(serializer.data,status=status.HTTP_200_OK)
 
@@ -200,6 +197,6 @@ def therapist_appointment_current_history(request):
     now = timezone.now()
     today = now.date()
     current_time = now.time()
-    appointment=Appointment.objects.filter(therapist=therapist).exclude(Q(appointment_date=today, appointment_time__gt=current_time)).order_by('-appointment_date', '-appointment_time')
+    appointment=Appointment.objects.filter(therapist=therapist).filter(Q(appointment_date__gt=today) |Q(appointment_date=today, appointment_time__gte=current_time))
     serializer=AppointmentSerializer(appointment,many=True)
     return Response(serializer.data,status=status.HTTP_200_OK)

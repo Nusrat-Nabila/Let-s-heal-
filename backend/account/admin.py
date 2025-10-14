@@ -1,4 +1,4 @@
 from django.contrib import admin
-from .models import Customer, Therapist, Admin, UserAuth, Review,TherapistRequest
+from .models import Customer, Therapist, Admin, UserAuth, Review,TherapistRequest,Hospital
 # Register your models here.
-admin.site.register([Customer, Therapist, Admin, UserAuth, Review,TherapistRequest])
+admin.site.register([Customer, Therapist, Admin, UserAuth, Review,TherapistRequest,Hospital])

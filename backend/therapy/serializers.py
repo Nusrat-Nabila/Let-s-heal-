@@ -12,7 +12,6 @@ class AppointmentSerializer(serializers.ModelSerializer):
             'appointment_type',
             'appointment_date',
             'appointment_time',
-            'hospital_name',
-            'hospital_address',
+            'hospital',#pass hospital ID--like this [1,2]<-- here 1 and 2 is the id of hospital 
             'created_at'
         ]

@@ -23,6 +23,13 @@ class Customer(models.Model):
     def __str__(self):
        return self.customer_name
     
+class Hospital(models.Model):
+    name = models.CharField(max_length=200)
+    address = models.TextField()
+
+    def __str__(self):
+        return self.name
+    
 class Therapist(models.Model):
     therapist_name=models.CharField(max_length=100)
     therapist_email=models.EmailField(max_length=100,unique=True,blank=True,null=True)
@@ -46,9 +53,8 @@ class Therapist(models.Model):
         ('no choice','no choice'), 
     )
     therapist_gender=models.CharField(max_length=150,choices=therapist_gender_choice,default='no choice')
+    hospital = models.ManyToManyField(Hospital,related_name='therapist', blank=True)
 
-    hospital_name=models.CharField(max_length=200,blank=True,null=True)
-    hospital_address=models.CharField(max_length=300,blank=True,null=True)
 
     def __str__(self):
        return self.therapist_name
@@ -69,10 +75,9 @@ class TherapistRequest(models.Model):
     )
     gender=models.CharField(max_length=150,choices=gender_choice,default='no choice')
     image=models.ImageField(upload_to='image/',blank=True,null=True)
-    hospital_name = models.CharField(max_length=200, blank=True, null=True)
-    hospital_address = models.CharField(max_length=300, blank=True, null=True)
-    password = models.CharField(max_length=200,blank=True,null=True)
+    hospital = models.ManyToManyField(Hospital, related_name='therapist_requests', blank=True)
 
+    password = models.CharField(max_length=200,blank=True,null=True)
     licence_pdf = models.FileField(upload_to="pdf/request/", blank=True, null=True)
 
     STATUS_CHOICES = (

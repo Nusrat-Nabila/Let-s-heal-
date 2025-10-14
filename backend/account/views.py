@@ -7,8 +7,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.contenttypes.models import ContentType
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import Customer, Therapist, Admin, UserAuth, Review ,TherapistRequest
-from .serializers import CustomerSerializer, TherapistSerializer, AdminSerializer,UserAuthSerializer, ReviewSerializer ,TherapistRequestSerializer
+from .models import Customer, Therapist, Admin, UserAuth, Review ,TherapistRequest,Hospital
+from .serializers import CustomerSerializer, TherapistSerializer, AdminSerializer,UserAuthSerializer, ReviewSerializer ,TherapistRequestSerializer,HospitalSerializer
 
 
 #customer signup
@@ -86,11 +86,12 @@ def process_therapist_request(request, request_id):
             therapist_qualification=therapist_req.qualification,
             therapist_password=therapist_req.password,
             therapist_gender=therapist_req.gender,
-            hospital_name=therapist_req.hospital_name,
-            hospital_address=therapist_req.hospital_address,
             therapist_role="therapist",
-            therapist_licence=therapist_req.licence_pdf  
+            therapist_licence=therapist_req.licence_pdf,
+            therapist_image=therapist_req.image 
         )
+
+        therapist.hospital.set(therapist_req.hospital.all())
      
         UserAuth.objects.create(
             content_type=ContentType.objects.get_for_model(Therapist),
@@ -223,4 +224,68 @@ def delete_customer(request, customer_id):
     if user.user_role != "admin" and user.user_email != customer.customer_email:
         return Response({"error": "Not authorized"}, status=403)
     customer.delete()
+    return Response({"message": "Customer deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+# create hospital
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_hospital(request):
+    user=request.user
+    if user.user_role!='admin':
+     return Response ({'error':"only admin can add hospital"}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        serializer=HospitalSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"success": True, "data": serializer.data}, status=status.HTTP_201_CREATED)
+        else:
+         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+# View hospital list(for admin) 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def view_hospital_list(request):
+    if request.user.user_role!='admin':
+        return Response ({'error':"only admin can add hospital"}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        hospital=Hospital.objects.all()
+        serializer=HospitalSerializer(hospital, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+# View hospital profile(for admin)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def view_specific_hospital_info(request, pk):
+    if request.user.user_role!='admin':
+        return Response ({'error':"only admin can add hospital"}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        hospital=Hospital.objects.get(id=pk)
+        serializer=HospitalSerializer(hospital)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+# Update hospital
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_hospital(request, pk):
+    user=request.user
+    if user.user_role!='admin':
+     return Response ({'error':"only admin can add hospital"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    hospital = get_object_or_404(Hospital, id=pk) 
+    serializer = HospitalSerializer(hospital, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# Delete hospital
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_hospital(request, pk):
+    user=request.user
+    if user.user_role!='admin':
+     return Response ({'error':"only admin can add hospital"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    hospital = get_object_or_404(Hospital, id=pk)
+    hospital.delete()
     return Response({"message": "Customer deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
