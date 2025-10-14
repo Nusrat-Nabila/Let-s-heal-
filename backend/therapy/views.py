@@ -17,12 +17,8 @@ from datetime import  timedelta
 
 #view therapist list(for admin and customer)
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def search_therapist(request):
-    user = request.user
-    if user.user_role != "admin" and user.user_role != "customer":
-        return Response({"error":"Not authorized"}, status=403)
-  
+@permission_classes([AllowAny])
+def search_therapist(request): 
     therapists = Therapist.objects.all().order_by('therapist_name')
     query = request.GET.get('search', '').strip()
     if query:
@@ -76,7 +72,6 @@ def update_therapist_profile(request,therapist_id):
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
-
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -95,15 +90,18 @@ def delete_therapist(request,therapist_id):
 # view for book appointment
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def book_appointment(request,therapist_id):
+def book_appointment(request,pk):
     user = request.user
+    if user.user_role != "customer":
+     return Response({"error": "Only customers can book appointment"}, status=status.HTTP_403_FORBIDDEN)
     try:
-        customer = Customer.objects.get(customer_email=user.user_email and user.user_role == "customer")
+       customer = Customer.objects.get(customer_email=user.user_email)
     except Customer.DoesNotExist:
-        return Response({"error": "Only customers can book appointment"}, status=status.HTTP_403_FORBIDDEN)
+       return Response({"error": "Customer not found."}, status=status.HTTP_404_NOT_FOUND)
+
 
    
-    therapist_id = therapist_id
+    therapist = Therapist.objects.get(id=pk)
     appointment_type=request.data.get('appointment_type')
     consultation_type = request.data.get('consultation_type')
     appointment_date = request.data.get('appointment_date')
@@ -112,11 +110,11 @@ def book_appointment(request,therapist_id):
     hospital_address=request.data.get('hospital_address')
     created_at=request.data.get('created_at')
 
-    if not therapist_id or not appointment_date or not appointment_time or not appointment_type or not consultation_type or not hospital_name or not hospital_address:
-        return Response({"error": "Therapist, date,time ,appointment type ,consultation type ,hospital_name and hospital_address are required."}, status=status.HTTP_400_BAD_REQUEST)
+    if not appointment_date or not appointment_time or not appointment_type or not consultation_type or not hospital_name or not hospital_address:
+        return Response({"error": " date,time ,appointment type ,consultation type ,hospital_name and hospital_address are required."}, status=status.HTTP_400_BAD_REQUEST)
 
 
-    therapist = Therapist.objects.get(id=therapist_id)
+    therapist = Therapist.objects.get(id=pk)
     current_appointment = Appointment.objects.filter(therapist=therapist,appointment_date=appointment_date).count()
 
     if current_appointment >= 80:
@@ -124,7 +122,7 @@ def book_appointment(request,therapist_id):
 
     serializer = AppointmentSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save(customer=customer)
+        serializer.save(customer=customer,therapist=therapist)
         send_mail(
             "About appointment booking ",
             "Your appointment is booked successfully!",
