@@ -10,7 +10,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Customer, Therapist, Admin, UserAuth, Review ,TherapistRequest,Hospital
 from .serializers import CustomerSerializer, TherapistSerializer, AdminSerializer,UserAuthSerializer, ReviewSerializer ,TherapistRequestSerializer,HospitalSerializer
 
-
 #customer signup
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -47,7 +46,6 @@ def therapist_request_signup(request):
      
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 #List of all therapist requests (for admin)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -57,7 +55,6 @@ def list_therapist_request(request):
             return Response({"message": "No therapist request for registration is found"}, status=status.HTTP_404_NOT_FOUND)
     serializer = TherapistRequestSerializer(requests, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 #Details of a specific therapist request (for admin)
 @api_view(['GET'])
@@ -131,7 +128,6 @@ def process_therapist_request(request, request_id):
 
     return Response({"success": False, "error": "Invalid action"}, status=status.HTTP_400_BAD_REQUEST)
 
-
 #login for customer,therapist and admin
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -178,7 +174,6 @@ def login(request):
     "refresh_token": refresh_token,
     },status=status.HTTP_200_OK)
 
-
 # get customer list(for admin)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -201,7 +196,6 @@ def view_customer_profile(request, request_id):
         return Response({"error": "Not authorized"}, status=status.HTTP_403_FORBIDDEN)
     serializer = CustomerSerializer(customer)
     return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 # Update customer profile
 @api_view(['PUT'])
@@ -241,24 +235,18 @@ def create_hospital(request):
         else:
          return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-# View hospital list(for admin) 
+# View hospital list
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def view_hospital_list(request):
-    if request.user.user_role!='admin':
-        return Response ({'error':"only admin can add hospital"}, status=status.HTTP_400_BAD_REQUEST)
-    else:
         hospital=Hospital.objects.all()
         serializer=HospitalSerializer(hospital, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-# View hospital profile(for admin)
+# View hospital profile
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def view_specific_hospital_info(request, pk):
-    if request.user.user_role!='admin':
-        return Response ({'error':"only admin can add hospital"}, status=status.HTTP_400_BAD_REQUEST)
-    else:
         hospital=Hospital.objects.get(id=pk)
         serializer=HospitalSerializer(hospital)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -289,3 +277,6 @@ def delete_hospital(request, pk):
     hospital = get_object_or_404(Hospital, id=pk)
     hospital.delete()
     return Response({"message": "Customer deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+
+

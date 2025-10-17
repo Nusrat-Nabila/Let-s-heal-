@@ -15,5 +15,6 @@ class Appointment(models.Model):
     
     def __str__(self):
         return f"Appointment of {self.customer.customer_name} with {self.therapist.therapist_name}"
-    
+
+
       

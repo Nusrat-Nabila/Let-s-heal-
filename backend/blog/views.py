@@ -11,7 +11,6 @@ from .models import Blog
 from .serializers import BlogSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def search_blog(request):
@@ -33,7 +32,6 @@ def get_my_blog(request):
             return Response({"message": "No blog found"}, status=status.HTTP_404_NOT_FOUND)
     serializer = BlogSerializer(blogs, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -81,7 +79,6 @@ def update_blog(request, pk):
         return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_blog(request, pk):
@@ -91,3 +88,4 @@ def delete_blog(request, pk):
 
     blog.delete()
     return Response({"success": True, "message": "Blog deleted successfully"}, status=status.HTTP_200_OK)
+

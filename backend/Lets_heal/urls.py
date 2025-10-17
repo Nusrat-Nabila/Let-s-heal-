@@ -51,9 +51,24 @@ urlpatterns = [
     path('api/therapist_appointment_current_history/', t_views.therapist_appointment_current_history, name='therapist_appointment_current_history'),
     path('api/cancel_appointment/<int:appointment_id>/', t_views.cancel_appointment, name='cancel_appointment'),
    
+    #quiz app
+    path('api/admin/add_question/', q_views.admin_add_question, name='admin_add_question'),
+    path('api/admin/update_question/<int:question_id>/', q_views.admin_update_question, name='admin_update_question'),
+    path('api/admin/delete_question/<int:question_id>/', q_views.admin_delete_question, name='admin_delete_question'),
+    path('api/admin/add_result_range/', q_views.admin_add_result_range, name='admin_add_result_range'),
+    path('api/start_quiz_attempt/', q_views.start_quiz_attempt, name='start_quiz_attempt'),
+    path('api/get_next_question/<int:attempt_id>/', q_views.get_next_question, name='get_next_question'),
+    path('api/submit_answer/<int:attempt_id>/', q_views.submit_answer, name='submit_answer'),
+    path('api/finish_attempt/<int:attempt_id>/', q_views.finish_attempt, name='finish_attempt'),
+    path('api/get_attempt_result/<int:attempt_id>/', q_views.get_attempt_result, name='get_attempt_result'),
+
+
     # JWT token refresh
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     
+
+
+

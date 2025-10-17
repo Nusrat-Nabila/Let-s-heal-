@@ -55,7 +55,6 @@ class Therapist(models.Model):
     therapist_gender=models.CharField(max_length=150,choices=therapist_gender_choice,default='no choice')
     hospital = models.ManyToManyField(Hospital,related_name='therapist', blank=True)
 
-
     def __str__(self):
        return self.therapist_name
    
@@ -132,3 +131,5 @@ class Review(models.Model):
 
     def __str__(self):
        return f"Review by {self.customer.customer_name} for {self.therapist.therapist_name}"
+
+

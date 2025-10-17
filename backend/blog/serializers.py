@@ -15,3 +15,4 @@ class BlogSerializer(serializers.ModelSerializer):
             'blog_created_at',
             'blog_updated_at',
         ]
+

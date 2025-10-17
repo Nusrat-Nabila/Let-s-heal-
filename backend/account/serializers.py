@@ -11,7 +11,6 @@ class HospitalSerializer(serializers.ModelSerializer):
             'address',
         ]
 
-
 class CustomerSerializer(serializers.ModelSerializer):
     
     confirm_password = serializers.CharField(write_only=True)
@@ -40,9 +39,8 @@ class CustomerSerializer(serializers.ModelSerializer):
         data.pop("confirm_password", None)  
      return data
 
-
 class TherapistSerializer(serializers.ModelSerializer):
-
+    hospital=HospitalSerializer(many=True,read_only=True)
     class Meta:
         model = Therapist
         fields = [
@@ -65,7 +63,7 @@ class TherapistSerializer(serializers.ModelSerializer):
 
 class TherapistRequestSerializer(serializers.ModelSerializer):
     confirm_password = serializers.CharField(write_only=True)
-
+    hospital=HospitalSerializer(many=True,read_only=True)
     class Meta:
         model = TherapistRequest
         fields = [
