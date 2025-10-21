@@ -31,18 +31,26 @@ def customer_signup(request):
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-#therapist request for signup
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def therapist_request_signup(request):
-    if TherapistRequest.objects.filter(email=request.data.get('email')).exists():
-        return Response( {"success": False, "error": "A request with this email already exists."},status=status.HTTP_400_BAD_REQUEST)
+    email = request.data.get('email') or request.POST.get('email')
+    if not email:
+        return Response({"success": False, "error": "Email is required"},status=status.HTTP_400_BAD_REQUEST)
+        
+    if TherapistRequest.objects.filter(email=email).exists():
+        return Response({"success": False, "error": "A request with this email already exists."},status=status.HTTP_400_BAD_REQUEST)
     
-    else:
-     serializer = TherapistRequestSerializer(data=request.data)
-     if serializer.is_valid():
+    data = request.data.copy()
+    if 'multipart' in request.content_type:
+        hospital_ids = request.POST.getlist('hospital')
+        if hospital_ids:
+            data['hospital_ids'] = hospital_ids
+    
+    serializer = TherapistRequestSerializer(data=data)
+    if serializer.is_valid():
         req = serializer.save()
-        return Response({"success": True, "message": "Request submitted. Awaiting admin approval."},status=status.HTTP_201_CREATED)
+        return Response({"success": True, "message": "Request submitted. Awaiting admin approval."}, status=status.HTTP_201_CREATED)
      
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

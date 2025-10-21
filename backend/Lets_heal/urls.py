@@ -1,4 +1,3 @@
-
 from django.contrib import admin
 from django.urls import path
 from django.conf import settings
@@ -52,6 +51,7 @@ urlpatterns = [
     path('api/cancel_appointment/<int:appointment_id>/', t_views.cancel_appointment, name='cancel_appointment'),
    
     #quiz app
+    path('api/admin/view_all_questions/', q_views.admin_view_all_questions, name='admin_view_all_questions'),
     path('api/admin/add_question/', q_views.admin_add_question, name='admin_add_question'),
     path('api/admin/update_question/<int:question_id>/', q_views.admin_update_question, name='admin_update_question'),
     path('api/admin/delete_question/<int:question_id>/', q_views.admin_delete_question, name='admin_delete_question'),
@@ -62,13 +62,10 @@ urlpatterns = [
     path('api/finish_attempt/<int:attempt_id>/', q_views.finish_attempt, name='finish_attempt'),
     path('api/get_attempt_result/<int:attempt_id>/', q_views.get_attempt_result, name='get_attempt_result'),
 
-
     # JWT token refresh
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     
-
-
 

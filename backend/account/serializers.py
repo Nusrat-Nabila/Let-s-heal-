@@ -63,7 +63,11 @@ class TherapistSerializer(serializers.ModelSerializer):
 
 class TherapistRequestSerializer(serializers.ModelSerializer):
     confirm_password = serializers.CharField(write_only=True)
-    hospital=HospitalSerializer(many=True,read_only=True)
+    hospital = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Hospital.objects.all()
+    )
+
     class Meta:
         model = TherapistRequest
         fields = [
@@ -76,7 +80,7 @@ class TherapistRequestSerializer(serializers.ModelSerializer):
             'qualification',
             'gender',
             'image',
-            'hospital',
+            'hospital',  # now writeable
             'password',
             'confirm_password',
             'licence_pdf',
@@ -85,15 +89,14 @@ class TherapistRequestSerializer(serializers.ModelSerializer):
         read_only_fields = ['status']
 
     def validate(self, data):
-     password = data.get("password")
-     confirm = data.get("confirm_password")
+        password = data.get("password")
+        confirm = data.get("confirm_password")
 
-     if password != confirm:
-        raise serializers.ValidationError("Passwords do not match")
-     else:
-        data.pop("confirm_password", None)  
-     return data
-    
+        if password != confirm:
+            raise serializers.ValidationError("Passwords do not match")
+        else:
+            data.pop("confirm_password", None)  
+        return data
     
 class AdminSerializer(serializers.ModelSerializer):
     class Meta:

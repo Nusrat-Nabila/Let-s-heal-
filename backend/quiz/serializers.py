@@ -1,8 +1,7 @@
 from rest_framework import serializers
 from account.models import Customer, Admin
 from .models import Quiz, QuizQuestion, QuizResultRange, QuizAttempt, QuizAnswer
-from account.serializers import CustomerSerializer,AdminSerializer
-
+from account.serializers import CustomerSerializer
 
 class QuizQuestionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -22,14 +21,12 @@ class QuizQuestionSerializer(serializers.ModelSerializer):
             'score_d',
             'is_required'
         ]
-        read_only_fields = ['id']
-
+        read_only_fields = ['id','quiz']
 
 class QuizResultRangeSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuizResultRange
         fields = ['id', 'quiz', 'min_score', 'max_score', 'result_text']
-
 
 class QuizSerializer(serializers.ModelSerializer):
     questions = QuizQuestionSerializer(many=True, read_only=True)
@@ -56,9 +53,8 @@ class QuizAnswerSerializer(serializers.ModelSerializer):
         fields = ['id', 'attempt', 'question', 'question_id', 'chosen_option', 'answered_at']
         read_only_fields = ['id', 'answered_at', 'question']
 
-
 class QuizAttemptSerializer(serializers.ModelSerializer):
-    customer = serializers.StringRelatedField(read_only=True)
+    customer = CustomerSerializer(read_only=True)
     quiz = QuizSerializer(read_only=True)
     quiz_id = serializers.PrimaryKeyRelatedField(source='quiz',queryset=Quiz.objects.filter(is_active=True), write_only=True)
     answers = QuizAnswerSerializer(many=True, read_only=True)
@@ -78,4 +74,3 @@ class QuizAttemptSerializer(serializers.ModelSerializer):
             'answers'
         ]
         read_only_fields = ['id', 'started_at', 'completed_at', 'total_score', 'result_text', 'is_completed', 'answers']
-

@@ -2,11 +2,10 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework.response import Response
 from .models import Quiz, QuizQuestion, QuizResultRange, QuizAttempt, QuizAnswer, Customer
 from .serializers import QuizSerializer, QuizQuestionSerializer, QuizResultRangeSerializer, QuizAttemptSerializer, QuizAnswerSerializer
-
 
 def get_main_quiz():
     quiz = Quiz.objects.filter(is_active=True).first()
@@ -14,12 +13,17 @@ def get_main_quiz():
         raise ValueError("No active quiz found. Please create one in admin panel.")
     return quiz
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def admin_add_question(request):
-    if request.user.user_role != 'admin':
-        return Response({"error": "Only admin can add question"}, status=status.HTTP_403_FORBIDDEN)
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def admin_view_all_questions(request):
+    quiz = get_main_quiz()
+    questions = QuizQuestion.objects.filter(quiz=quiz).order_by('order')
+    serializer = QuizQuestionSerializer(questions, many=True)
+    return Response(serializer.data)
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def admin_add_question(request):
     quiz = get_main_quiz()
     serializer = QuizQuestionSerializer(data=request.data)
     if serializer.is_valid():
@@ -27,13 +31,9 @@ def admin_add_question(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 @api_view(['PUT'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def admin_update_question(request, question_id):
-    if request.user.user_role != 'admin':
-        return Response({"error": "Only admin can update question"}, status=status.HTTP_403_FORBIDDEN)
-
     question = get_object_or_404(QuizQuestion, id=question_id)
     serializer = QuizQuestionSerializer(question, data=request.data, partial=True)
     if serializer.is_valid():
@@ -41,24 +41,16 @@ def admin_update_question(request, question_id):
         return Response(serializer.data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 @api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def admin_delete_question(request, question_id):
-    if request.user.user_role != 'admin':
-        return Response({"error": "Only admin can delete question"}, status=status.HTTP_403_FORBIDDEN)
-
     question = get_object_or_404(QuizQuestion, id=question_id)
     question.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
-
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def admin_add_result_range(request):
-    if request.user.user_role != 'admin':
-        return Response({"error": "Only admin can add result range"}, status=status.HTTP_403_FORBIDDEN)
-
     quiz = get_main_quiz()
     data = request.data.copy()
     data['quiz'] = quiz.id
@@ -71,14 +63,28 @@ def admin_add_result_range(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def start_quiz_attempt(request):
-    quiz = get_main_quiz()
-    customer = get_object_or_404(Customer, id=request.user.id)
-    attempt = QuizAttempt.objects.create(customer=customer, quiz=quiz)
-    return Response(QuizAttemptSerializer(attempt).data, status=status.HTTP_201_CREATED)
+    try:
+        customer_id = request.data.get('customer_id')
+        
+        if not customer_id:
+            return Response({
+                'status': 'fail', 
+                'message': 'Customer ID is required in request body.'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
+        customer = get_object_or_404(Customer, id=customer_id)
+        quiz = Quiz.objects.filter(is_active=True).first()
+        
+        if not quiz:
+            return Response({'status': 'fail', 'message': 'No active quiz found.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        attempt = QuizAttempt.objects.create(customer=customer, quiz=quiz)
+        return Response(QuizAttemptSerializer(attempt).data, status=status.HTTP_201_CREATED)
+    except Exception as e:
+        return Response({'status': 'fail', 'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def get_next_question(request, attempt_id):
     attempt = get_object_or_404(QuizAttempt, id=attempt_id)
     if attempt.is_completed:
@@ -91,10 +97,8 @@ def get_next_question(request, attempt_id):
         return Response({"done": True})  
     return Response(QuizQuestionSerializer(next_question).data)
 
-
-
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def submit_answer(request, attempt_id):
     attempt = get_object_or_404(QuizAttempt, id=attempt_id)
     if attempt.is_completed:
@@ -109,25 +113,33 @@ def submit_answer(request, attempt_id):
     answer, _ = QuizAnswer.objects.update_or_create(attempt=attempt, question=question,defaults={'chosen_option': chosen})
     return Response(QuizAnswerSerializer(answer).data, status=201)
 
-
-
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def finish_attempt(request, attempt_id):
     attempt = get_object_or_404(QuizAttempt, id=attempt_id)
 
     if attempt.is_completed:
         return Response(QuizAttemptSerializer(attempt).data)
-
-    total_score = sum(
-        getattr(ans.question, f'score_{ans.chosen_option}', 0) or 0
-        for ans in attempt.answers.select_related('question')
-    )
+    
+    total_score = 0
+    for ans in attempt.answers.select_related('question'):
+        if ans.chosen_option == 'a':
+            score = ans.question.score_a
+        elif ans.chosen_option == 'b':
+            score = ans.question.score_b
+        elif ans.chosen_option == 'c':
+            score = ans.question.score_c
+        elif ans.chosen_option == 'd':
+            score = ans.question.score_d
+        else:
+            score = 0
+        
+        total_score += score
 
     result_range = QuizResultRange.objects.filter(
         quiz=attempt.quiz,
         min_score__lte=total_score,
-        max_score__gte=total_score
+        max_score__gte=total_score 
     ).first()
 
     attempt.total_score = total_score
@@ -138,12 +150,11 @@ def finish_attempt(request, attempt_id):
 
     return Response(QuizAttemptSerializer(attempt).data)
 
-
-
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def get_attempt_result(request, attempt_id):
     attempt = get_object_or_404(QuizAttempt, id=attempt_id)
     if not attempt.is_completed:
         return Response({"error": "Attempt not yet completed"}, status=status.HTTP_400_BAD_REQUEST)
     return Response(QuizAttemptSerializer(attempt).data)
+
