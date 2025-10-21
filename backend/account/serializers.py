@@ -98,6 +98,7 @@ class TherapistRequestSerializer(serializers.ModelSerializer):
             data.pop("confirm_password", None)  
         return data
     
+    
 class AdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = Admin

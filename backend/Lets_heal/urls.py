@@ -1,3 +1,4 @@
+
 from django.contrib import admin
 from django.urls import path
 from django.conf import settings
@@ -56,6 +57,7 @@ urlpatterns = [
     path('api/admin/update_question/<int:question_id>/', q_views.admin_update_question, name='admin_update_question'),
     path('api/admin/delete_question/<int:question_id>/', q_views.admin_delete_question, name='admin_delete_question'),
     path('api/admin/add_result_range/', q_views.admin_add_result_range, name='admin_add_result_range'),
+
     path('api/start_quiz_attempt/', q_views.start_quiz_attempt, name='start_quiz_attempt'),
     path('api/get_next_question/<int:attempt_id>/', q_views.get_next_question, name='get_next_question'),
     path('api/submit_answer/<int:attempt_id>/', q_views.submit_answer, name='submit_answer'),
@@ -68,4 +70,6 @@ urlpatterns = [
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     
+
+
 

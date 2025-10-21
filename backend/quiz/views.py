@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from .models import Quiz, QuizQuestion, QuizResultRange, QuizAttempt, QuizAnswer, Customer
 from .serializers import QuizSerializer, QuizQuestionSerializer, QuizResultRangeSerializer, QuizAttemptSerializer, QuizAnswerSerializer
 
+
 def get_main_quiz():
     quiz = Quiz.objects.filter(is_active=True).first()
     if not quiz:
@@ -97,6 +98,7 @@ def get_next_question(request, attempt_id):
         return Response({"done": True})  
     return Response(QuizQuestionSerializer(next_question).data)
 
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def submit_answer(request, attempt_id):
@@ -112,6 +114,7 @@ def submit_answer(request, attempt_id):
     question = get_object_or_404(QuizQuestion, id=q_id, quiz=attempt.quiz)
     answer, _ = QuizAnswer.objects.update_or_create(attempt=attempt, question=question,defaults={'chosen_option': chosen})
     return Response(QuizAnswerSerializer(answer).data, status=201)
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -157,4 +160,3 @@ def get_attempt_result(request, attempt_id):
     if not attempt.is_completed:
         return Response({"error": "Attempt not yet completed"}, status=status.HTTP_400_BAD_REQUEST)
     return Response(QuizAttemptSerializer(attempt).data)
-

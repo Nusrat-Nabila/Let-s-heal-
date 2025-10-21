@@ -3,6 +3,7 @@ from account.models import Customer, Admin
 from .models import Quiz, QuizQuestion, QuizResultRange, QuizAttempt, QuizAnswer
 from account.serializers import CustomerSerializer
 
+
 class QuizQuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuizQuestion
@@ -23,10 +24,12 @@ class QuizQuestionSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id','quiz']
 
+
 class QuizResultRangeSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuizResultRange
         fields = ['id', 'quiz', 'min_score', 'max_score', 'result_text']
+
 
 class QuizSerializer(serializers.ModelSerializer):
     questions = QuizQuestionSerializer(many=True, read_only=True)

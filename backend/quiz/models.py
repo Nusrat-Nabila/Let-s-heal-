@@ -54,6 +54,7 @@ class QuizAttempt(models.Model):
     def __str__(self):
         return f"Attempt {self.id} by {self.customer} on {self.quiz.title}"
 
+
 class QuizAnswer(models.Model):
     attempt = models.ForeignKey(QuizAttempt, on_delete=models.CASCADE, related_name='answers')
     question = models.ForeignKey(QuizQuestion, on_delete=models.CASCADE)
@@ -65,7 +66,3 @@ class QuizAnswer(models.Model):
 
     def __str__(self):
         return f"Attempt {self.attempt.id} Q{self.question.order} => {self.chosen_option}"
-
-
-
-
