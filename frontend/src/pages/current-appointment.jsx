@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, Hospital, User, MapPin, ExternalLink, Video, Users, Search, Filter, Mail, Phone, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, Hospital, User, MapPin, Video, Users, Search, Filter, Mail, Phone, AlertCircle } from 'lucide-react';
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
 
@@ -279,8 +279,7 @@ const CurrentAppointment = () => {
   // Generate random color for avatar background
   const getRandomColor = (customerId) => {
     const colors = [
-      'bg-purple-600', 'bg-blue-600', 'bg-green-600', 'bg-red-600', 
-      'bg-yellow-600', 'bg-indigo-600', 'bg-pink-600', 'bg-teal-600'
+      'bg-purple-800'
     ];
     const index = customerId ? customerId % colors.length : 0;
     return colors[index];

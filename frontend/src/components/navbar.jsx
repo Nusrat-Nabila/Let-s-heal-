@@ -69,6 +69,17 @@ const Navbar = () => {
     navigate('/login');
   };
 
+  // Handle quiz click for guests - DIRECT REDIRECT TO LOGIN
+  const handleQuizClick = () => {
+    // Store intended destination
+    sessionStorage.setItem('redirectAfterLogin', '/assessments');
+    // Close menus
+    setIsOpen(false);
+    setIsMobileMenuOpen(false);
+    // Redirect directly to login
+    navigate('/login');
+  };
+
   const getUserName = () => {
     if (!user) return "";
     
@@ -150,7 +161,7 @@ const Navbar = () => {
     );
   };
 
-  // Customer Navbar - UPDATED WITH PROFILE IMAGE
+  // Customer Navbar 
   const CustomerNavbar = () => (
     <>
       {/* Desktop Menu for Customer */}
@@ -252,14 +263,6 @@ const Navbar = () => {
                 <FiUser className="w-4 h-4" />
                 <span>My Profile</span>
               </Link>
-              <Link
-                to="/customer/settings"
-                className="px-4 py-3 hover:bg-purple-50 border-b border-purple-300 flex items-center gap-3"
-                onClick={() => setIsOpen(false)}
-              >
-                <FiSettings className="w-4 h-4" />
-                <span>Settings</span>
-              </Link>
               <button
                 onClick={handleLogout}
                 className="w-full text-left px-4 py-3 hover:bg-purple-50 text-red-600 flex items-center gap-3"
@@ -272,7 +275,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu for Customer - UPDATED WITH PROFILE IMAGE */}
+      {/* Mobile Menu for Customer */}
       {isMobileMenuOpen && (
         <div ref={mobileMenuRef} className="md:hidden bg-purple-800 border-t border-purple-700">
           <div className="px-4 py-3 space-y-2">
@@ -404,7 +407,7 @@ const Navbar = () => {
     </>
   );
 
-  // Therapist Navbar - UPDATED WITH PROFILE IMAGE
+  // Therapist Navbar 
   const TherapistNavbar = () => (
     <>
       {/* Desktop Menu for Therapist */}
@@ -496,7 +499,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu for Therapist - UPDATED WITH PROFILE IMAGE */}
+      {/* Mobile Menu for Therapist*/}
       {isMobileMenuOpen && (
         <div ref={mobileMenuRef} className="md:hidden bg-purple-800 border-t border-purple-700">
           <div className="px-4 py-3 space-y-2">
@@ -583,7 +586,7 @@ const Navbar = () => {
     </>
   );
 
-  // Admin Navbar - FIXED VERSION
+  // Admin Navbar 
   const AdminNavbar = () => {
     // Separate states for each dropdown
     const [isServicesOpen, setIsServicesOpen] = useState(false);
@@ -630,7 +633,7 @@ const Navbar = () => {
             <span>Dashboard</span>
           </Link>
 
-          {/* Services Dropdown - FIXED */}
+          {/* Services Dropdown*/}
           <div className="relative" ref={servicesDropdownRef}>
             <button
               onClick={toggleServicesDropdown} 
@@ -643,9 +646,6 @@ const Navbar = () => {
 
             {isServicesOpen && (
               <div className="absolute top-full left-0 mt-2 w-56 bg-purple-200 text-purple-800 rounded-lg shadow-lg z-10 border border-purple-300">
-                <div className="px-4 py-3 border-b border-purple-300">
-                  <p className="font-semibold text-sm">Manage Services</p>
-                </div>
                 
                 <Link
                   to="/therapist-requests"
@@ -825,7 +825,7 @@ const Navbar = () => {
     );
   };
 
-  // Guest Navbar
+  // Guest Navbar - UPDATED WITH DIRECT REDIRECT
   const GuestNavbar = () => (
     <>
       {/* Desktop Menu for Guest */}
@@ -854,14 +854,6 @@ const Navbar = () => {
           {isOpen && (
             <div className="absolute left-0 mt-2 w-48 bg-purple-200 text-purple-800 rounded-lg shadow-lg z-10 border border-purple-300">
               <Link
-                to="/services/therapy"
-                className="px-4 py-3 hover:bg-purple-50 border-b border-purple-300 flex items-center gap-3"
-                onClick={() => setIsOpen(false)}
-              >
-                <FiUsers className="w-4 h-4" />
-                <span>Therapy</span>
-              </Link>
-              <Link
                 to="/blog-posts"
                 className="px-4 py-3 hover:bg-purple-50 border-b border-purple-300 flex items-center gap-3"
                 onClick={() => setIsOpen(false)}
@@ -869,14 +861,13 @@ const Navbar = () => {
                 <FiBook className="w-4 h-4" />
                 <span>Blog Posts</span>
               </Link>
-              <Link
-                to="/services/assessments"
-                className="px-4 py-3 hover:bg-purple-50 flex items-center gap-3"
-                onClick={() => setIsOpen(false)}
+              <button
+                onClick={handleQuizClick}
+                className="w-full text-left px-4 py-3 hover:bg-purple-50 flex items-center gap-3"
               >
                 <FiBarChart2 className="w-4 h-4" />
-                <span>Assessments</span>
-              </Link>
+                <span>Mental Health Quiz</span>
+              </button>
             </div>
           )}
         </div>
@@ -944,18 +935,7 @@ const Navbar = () => {
               {isOpen && (
                 <div className="mt-2 ml-6 space-y-1">
                   <Link
-                    to="/services/therapy"
-                    className="py-2 px-3 text-purple-200 hover:text-white hover:bg-purple-700 rounded-md transition flex items-center gap-3"
-                    onClick={() => {
-                      setIsOpen(false);
-                      setIsMobileMenuOpen(false);
-                    }}
-                  >
-                    <FiUsers className="w-4 h-4" />
-                    <span>Therapy</span>
-                  </Link>
-                  <Link
-                    to="/services/blog"
+                    to="/blog-posts"
                     className="py-2 px-3 text-purple-200 hover:text-white hover:bg-purple-700 rounded-md transition flex items-center gap-3"
                     onClick={() => {
                       setIsOpen(false);
@@ -965,24 +945,20 @@ const Navbar = () => {
                     <FiBook className="w-4 h-4" />
                     <span>Blog Posts</span>
                   </Link>
-                  <Link
-                    to="/services/assessments"
-                    className="py-2 px-3 text-purple-200 hover:text-white hover:bg-purple-700 rounded-md transition flex items-center gap-3"
-                    onClick={() => {
-                      setIsOpen(false);
-                      setIsMobileMenuOpen(false);
-                    }}
+                  <button
+                    onClick={handleQuizClick}
+                    className="w-full text-left py-2 px-3 text-purple-200 hover:text-white hover:bg-purple-700 rounded-md transition flex items-center gap-3"
                   >
                     <FiBarChart2 className="w-4 h-4" />
-                    <span>Assessments</span>
-                  </Link>
+                    <span>Mental Health Quiz</span>
+                  </button>
                 </div>
               )}
             </div>
             
             <div className="pt-3 border-t border-purple-700 space-y-2">
               <Link
-                to="/therapists"
+                to="/findtherapist"
                 className="w-full py-2 px-3 text-center bg-purple-200 text-purple-800 rounded-lg font-semibold hover:bg-purple-800 hover:text-purple-200 transition flex items-center justify-center gap-2"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
@@ -1036,7 +1012,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center px-4 md:px-6 lg:px-8 xl:px-15 font-semibold">
           {/* Logo */}
           <div className="flex items-center">
-            <Link to={user ? `/${user.role}/dashboard` : "/"}>
+            <Link to={user ? `/${user.role}-dashboard` : "/"}>
               <img src={logoImage} className="w-32 md:w-40 h-8 md:h-11" alt="Let's Heal Logo" />
             </Link>
           </div>

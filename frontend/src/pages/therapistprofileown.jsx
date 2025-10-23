@@ -360,20 +360,6 @@ const TherapistProfile = () => {
     }
   }, [error, success]);
 
-  if (loading) {
-    return (
-      <>
-        <Navbar />
-        <div className="min-h-screen bg-purple-200 flex items-center justify-center">
-          <div className="text-center">
-            <FiLoader className="animate-spin text-purple-600 mx-auto" size={32} />
-            <p className="mt-4 text-purple-700">Loading profile...</p>
-          </div>
-        </div>
-        <Footer />
-      </>
-    );
-  }
 
   // Get hospitals data
   const hospitals = getAllHospitals();
@@ -460,10 +446,6 @@ const TherapistProfile = () => {
                       </a>
                     </div>
                   )}
-
-                  <div className="inline-block px-4 py-2 bg-gradient-to-r from-purple-100 to-purple-50 text-purple-800 text-xs font-bold rounded-full border border-purple-300 mb-8">
-                    {therapist?.therapist_status === "Active" ? "✓ AVAILABLE" : "✗ UNAVAILABLE"}
-                  </div>
 
                   {/* Buttons */}
                   <div className="space-y-4">

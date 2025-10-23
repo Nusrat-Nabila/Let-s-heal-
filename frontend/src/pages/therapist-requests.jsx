@@ -251,11 +251,11 @@ const TherapistRequests = () => {
                   <div className="text-purple-500 text-sm font-medium">Total</div>
                 </div>
                 <div className="bg-purple-50 px-4 py-3 rounded-xl border border-purple-200 shadow-sm min-w-24 text-center">
-                  <div className="text-xl font-bold text-purple-700">{stats.pending}</div>
+                  <div className="text-xl font-bold text-purple-900">{stats.pending}</div>
                   <div className="text-purple-600 text-sm font-medium">Pending</div>
                 </div>
                 <div className="bg-purple-50 px-4 py-3 rounded-xl border border-purple-200 shadow-sm min-w-24 text-center">
-                  <div className="text-xl font-bold text-purple-700">{stats.approved}</div>
+                  <div className="text-xl font-bold text-purple-900">{stats.approved}</div>
                   <div className="text-purple-600 text-sm font-medium">Approved</div>
                 </div>
               </div>

@@ -219,7 +219,7 @@ export default function CreatePostForm() {
 
   if (!currentUser) {
     return (
-      <div className="bg-purple-50 shadow-lg rounded-xl p-5 border border-purple-200 w-full max-w-md text-center">
+      <div id="create-post-loading" className="bg-purple-50 shadow-lg rounded-xl p-5 border border-purple-200 w-full max-w-md text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
         <p className="text-purple-800">Loading user data...</p>
       </div>
@@ -227,12 +227,12 @@ export default function CreatePostForm() {
   }
 
   return (
-    <div className="bg-white shadow-lg rounded-xl p-5 border border-purple-200 w-full max-w-lg mx-auto">
-      <h2 className="text-xl font-bold text-purple-800 text-center mb-3 drop-shadow-[0_4px_3px_rgba(0,0,0,0.30)]">Create New Post</h2>
+    <div id="create-post-form-container" className="bg-white shadow-lg rounded-xl p-5 border border-purple-200 w-full max-w-lg mx-auto">
+      <h2 id="create-post-title" className="text-xl font-bold text-purple-800 text-center mb-3 drop-shadow-[0_4px_3px_rgba(0,0,0,0.30)]">Create New Post</h2>
       
-      <form className="space-y-3" onSubmit={handleSubmit}>
+      <form id="create-post-form" className="space-y-3" onSubmit={handleSubmit}>
         {/* Title */}
-        <div>
+        <div id="title-field-container">
           <label htmlFor="blog_title" className="block text-sm font-medium text-purple-800 mb-1">
             Post Title *
           </label>
@@ -240,6 +240,7 @@ export default function CreatePostForm() {
             type="text"
             id="blog_title"
             name="blog_title"
+            data-testid="blog-title-input"
             placeholder="Enter a meaningful title for your post"
             className={`w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-600 focus:border-purple-600 focus:outline-none transition-colors ${
               errors.blog_title ? "border-red-500" : "border-purple-300"
@@ -247,31 +248,35 @@ export default function CreatePostForm() {
             value={formData.blog_title}
             onChange={handleInputChange}
           />
-          {errors.blog_title && <p className="text-red-500 text-xs mt-1">{errors.blog_title}</p>}
+          {errors.blog_title && <p id="title-error" className="text-red-500 text-xs mt-1">{errors.blog_title}</p>}
         </div>
 
         {/* Author Selection */}
-        <div>
+        <div id="author-selection-container">
           <label className="block text-sm font-medium text-purple-800 mb-1">
             Post As *
           </label>
-          <div className="flex gap-4 mb-3">
-            <label className="flex items-center">
+          <div id="author-type-options" className="flex gap-4 mb-3">
+            <label id="with-identity-option" className="flex items-center">
               <input
                 type="radio"
+                id="author-type-identity"
                 name="author_type"
                 value="with-identity"
+                data-testid="author-type-identity"
                 checked={!formData.is_anonymous}
                 onChange={handleAuthorTypeChange}
                 className="mr-2 text-purple-600 focus:ring-purple-500"
               />
               <span className="text-sm text-purple-800">With Your Name</span>
             </label>
-            <label className="flex items-center">
+            <label id="anonymous-option" className="flex items-center">
               <input
                 type="radio"
+                id="author-type-anonymous"
                 name="author_type"
                 value="anonymous"
+                data-testid="author-type-anonymous"
                 checked={formData.is_anonymous}
                 onChange={handleAuthorTypeChange}
                 className="mr-2 text-purple-600 focus:ring-purple-500"
@@ -282,7 +287,7 @@ export default function CreatePostForm() {
 
           {/* Author Name Input - Only show when not anonymous */}
           {!formData.is_anonymous ? (
-            <div>
+            <div id="author-name-field-container">
               <label htmlFor="blog_author_name" className="block text-sm font-medium text-purple-800 mb-1">
                 Your Name *
               </label>
@@ -290,6 +295,7 @@ export default function CreatePostForm() {
                 type="text"
                 id="blog_author_name"
                 name="blog_author_name"
+                data-testid="author-name-input"
                 placeholder="Enter your name as you want it to appear"
                 className={`w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-600 focus:border-purple-600 focus:outline-none transition-colors ${
                   errors.blog_author_name ? "border-red-500" : "border-purple-300"
@@ -297,10 +303,10 @@ export default function CreatePostForm() {
                 value={formData.blog_author_name}
                 onChange={handleInputChange}
               />
-              {errors.blog_author_name && <p className="text-red-500 text-xs mt-1">{errors.blog_author_name}</p>}
+              {errors.blog_author_name && <p id="author-name-error" className="text-red-500 text-xs mt-1">{errors.blog_author_name}</p>}
             </div>
           ) : (
-            <div className="p-2 bg-purple-50 rounded-lg border border-purple-200">
+            <div id="anonymous-display" className="p-2 bg-purple-50 rounded-lg border border-purple-200">
               <p className="text-sm text-purple-800">
                 <strong>Posting as:</strong> Anonymous
               </p>
@@ -309,17 +315,18 @@ export default function CreatePostForm() {
         </div>
 
         {/* Image Upload */}
-        <div>
+        <div id="image-upload-container">
           <label htmlFor="blog_image" className="block text-sm font-medium text-purple-800 mb-1">
             Featured Image (Optional)
           </label>
           
           {!preview ? (
-            <div className="border-2 border-dashed border-purple-300 rounded-lg p-3 text-center hover:border-purple-400 transition-colors cursor-pointer bg-purple-50">
+            <div id="image-upload-area" className="border-2 border-dashed border-purple-300 rounded-lg p-3 text-center hover:border-purple-400 transition-colors cursor-pointer bg-purple-50">
               <input
                 type="file"
                 id="blog_image"
                 name="blog_image"
+                data-testid="image-upload-input"
                 accept="image/*"
                 onChange={handleFileChange}
                 className="hidden"
@@ -335,11 +342,13 @@ export default function CreatePostForm() {
               </label>
             </div>
           ) : (
-            <div className="border border-purple-200 rounded-lg p-2 bg-purple-50">
+            <div id="image-preview-container" className="border border-purple-200 rounded-lg p-2 bg-purple-50">
               <div className="flex justify-between items-center mb-1">
                 <p className="text-sm font-medium text-purple-800">Image Preview:</p>
                 <button
                   type="button"
+                  id="remove-image-button"
+                  data-testid="remove-image-btn"
                   onClick={removeImage}
                   className="text-red-500 hover:text-red-700 text-xs font-medium"
                 >
@@ -349,26 +358,28 @@ export default function CreatePostForm() {
               <img 
                 src={preview} 
                 alt="Preview" 
+                id="image-preview"
                 className="w-full h-40 object-cover rounded-lg border border-purple-300"
               />
               {file && (
-                <p className="text-xs text-purple-600 mt-1">
+                <p id="file-info" className="text-xs text-purple-600 mt-1">
                   Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
                 </p>
               )}
             </div>
           )}
-          {errors.blog_image && <p className="text-red-500 text-xs mt-1">{errors.blog_image}</p>}
+          {errors.blog_image && <p id="image-error" className="text-red-500 text-xs mt-1">{errors.blog_image}</p>}
         </div>
 
         {/* Body Content */}
-        <div>
+        <div id="content-field-container">
           <label htmlFor="blog_content" className="block text-sm font-medium text-purple-800 mb-1">
             Your Story *
           </label>
           <textarea
             id="blog_content"
             name="blog_content"
+            data-testid="blog-content-textarea"
             placeholder="Share your experiences, thoughts, and healing journey... (Minimum 50 characters)"
             rows="5"
             className={`w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-600 focus:border-purple-600 focus:outline-none transition-colors resize-vertical ${
@@ -377,12 +388,12 @@ export default function CreatePostForm() {
             value={formData.blog_content}
             onChange={handleInputChange}
           />
-          {errors.blog_content && <p className="text-red-500 text-xs mt-1">{errors.blog_content}</p>}
-          <div className="flex justify-between text-xs text-purple-800 mt-1">
-            <span className={formData.blog_content.length < 50 ? "text-red-500" : "text-green-600"}>
+          {errors.blog_content && <p id="content-error" className="text-red-500 text-xs mt-1">{errors.blog_content}</p>}
+          <div id="character-count" className="flex justify-between text-xs text-purple-800 mt-1">
+            <span id="min-character-count" className={formData.blog_content.length < 50 ? "text-red-500" : "text-green-600"}>
               {formData.blog_content.length}/50 characters minimum
             </span>
-            <span className={formData.blog_content.length > 2000 ? "text-red-500" : ""}>
+            <span id="max-character-count" className={formData.blog_content.length > 2000 ? "text-red-500" : ""}>
               {formData.blog_content.length}/2000 max
             </span>
           </div>
@@ -390,26 +401,28 @@ export default function CreatePostForm() {
 
         {/* Preview of how post will appear */}
         {(formData.blog_title || formData.blog_content) && (
-          <div className="border border-purple-200 rounded-lg p-2 bg-purple-50">
+          <div id="post-preview" className="border border-purple-200 rounded-lg p-2 bg-purple-50">
             <p className="text-sm font-medium text-purple-800 mb-1">Preview:</p>
             <div className="text-xs text-purple-700 space-y-0.5">
-              <p><strong>Author:</strong> {formData.blog_author_name}</p>
-              {formData.blog_title && <p><strong>Title:</strong> {formData.blog_title}</p>}
+              <p id="preview-author"><strong>Author:</strong> {formData.blog_author_name}</p>
+              {formData.blog_title && <p id="preview-title"><strong>Title:</strong> {formData.blog_title}</p>}
               {formData.blog_content && (
-                <p><strong>Content:</strong> {formData.blog_content.substring(0, 100)}...</p>
+                <p id="preview-content"><strong>Content:</strong> {formData.blog_content.substring(0, 100)}...</p>
               )}
             </div>
           </div>
         )}
 
         {errors.submit && (
-          <div className="rounded-md bg-red-50 p-1.5 border border-red-200">
+          <div id="submit-error" className="rounded-md bg-red-50 p-1.5 border border-red-200">
             <p className="text-xs text-red-800">{errors.submit}</p>
           </div>
         )}
 
         <button
           type="submit"
+          id="submit-post-button"
+          data-testid="submit-post-btn"
           disabled={isSubmitting}
           className={`w-full bg-purple-800 text-white py-2 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors font-medium text-sm ${
             isSubmitting ? "opacity-75 cursor-not-allowed" : ""

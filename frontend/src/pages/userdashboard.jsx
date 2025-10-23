@@ -1,6 +1,7 @@
 import React from "react";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
+import { Link } from "react-router-dom";
 
 export default function UserDashboard() {
   // Get user data from localStorage
@@ -60,9 +61,9 @@ export default function UserDashboard() {
               helps you see how you're coping and whether you might benefit from
               talking to a therapist or getting other professional support.
             </p>
-            <button className="mt-8 bg-purple-800 text-purple-200 px-8 py-3 rounded-lg shadow-md hover:bg-purple-700 transition duration-300 text-lg font-medium">
+            <Link to="/assessments"><button className="mt-8 bg-purple-800 text-purple-200 px-8 py-3 rounded-lg shadow-md hover:bg-purple-700 transition duration-300 text-lg font-medium">
               Get Started
-            </button>
+            </button></Link>
           </div>
 
           {/* Video Animation */}
@@ -99,7 +100,7 @@ export default function UserDashboard() {
       {/* Customer Features Section */}
       <section id="features-section" className="py-12 px-6 bg-[#dcccf5]">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-purple-900 text-center mb-12 drop-shadow-[0_4px_3px_rgba(0,0,0,0.70)]">
+          <h2 className="text-3xl font-bold text-purple-900 text-center mb-12 drop-shadow-[0_4px_3px_rgba(0,0,0,0.30)]">
             Features for You
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

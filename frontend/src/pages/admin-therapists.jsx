@@ -229,7 +229,7 @@ const AdminTherapists = () => {
               <div className="bg-white p-6 rounded-xl border border-purple-200 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-2xl font-bold text-purple-600">{stats.active}</div>
+                    <div className="text-2xl font-bold text-purple-900">{stats.active}</div>
                     <div className="text-purple-500 text-sm font-medium">Available Now</div>
                   </div>
                   <div className="p-2 bg-purple-100 rounded-lg">
@@ -240,7 +240,7 @@ const AdminTherapists = () => {
               <div className="bg-white p-6 rounded-xl border border-purple-200 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-2xl font-bold text-purple-600">{stats.experienced}</div>
+                    <div className="text-2xl font-bold text-purple-900">{stats.experienced}</div>
                     <div className="text-purple-500 text-sm font-medium">5+ Years Experience</div>
                   </div>
                   <div className="p-2 bg-purple-100 rounded-lg">
@@ -251,7 +251,7 @@ const AdminTherapists = () => {
               <div className="bg-white p-6 rounded-xl border border-purple-200 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-2xl font-bold text-purple-600">{stats.specialized}</div>
+                    <div className="text-2xl font-bold text-purple-900">{stats.specialized}</div>
                     <div className="text-purple-500 text-sm font-medium">Specialized</div>
                   </div>
                   <div className="p-2 bg-purple-100 rounded-lg">

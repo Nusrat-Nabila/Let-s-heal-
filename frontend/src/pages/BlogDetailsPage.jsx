@@ -194,7 +194,7 @@ function BlogDetailsPage() {
                   {/* Author and Meta Info */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                      <div className="w-12 h-12 bg-purple-800 rounded-full flex items-center justify-center text-white font-bold text-lg">
                         {blog.blog_author_name?.charAt(0).toUpperCase() || "U"}
                       </div>
                       <div>

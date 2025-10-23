@@ -152,16 +152,14 @@ const Login = () => {
   };
 
   return (
-    <div className="login-page min-h-screen flex flex-col bg-purple-200">
+    <div id="login" className="min-h-screen flex flex-col bg-purple-200">
       <Navbar />
     
       <div className="flex flex-col md:flex-row items-center justify-center flex-grow px-4 py-8 min-h-[85vh]">
-        {/* Left Section with larger image */}
         <div className="flex-1 flex flex-col items-center text-center mb-8 md:mb-0 md:mr-12">
           <h1 className="text-4xl font-bold text-purple-800 mb-4 drop-shadow-[0_4px_3px_rgba(0,0,0,0.30)]">Let's Heal</h1>
           <p className="text-purple-800 text-lg mb-8 font-samibold"><i>"Your Journey to Healing Starts Here"</i></p>
           
-          {/* Hero Image - Larger */}
           <div className="flex-1">
             <div className="video-container rounded-xl overflow-hidden flex justify-start">
               <video 

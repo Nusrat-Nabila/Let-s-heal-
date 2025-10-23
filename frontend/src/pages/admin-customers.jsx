@@ -216,7 +216,7 @@ const AdminCustomers = () => {
               <div className="bg-white p-6 rounded-xl border border-purple-200 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-2xl font-bold text-purple-600">{stats.active}</div>
+                    <div className="text-2xl font-bold text-purple-900">{stats.active}</div>
                     <div className="text-purple-500 text-sm font-medium">Active Customers</div>
                   </div>
                   <div className="p-2 bg-purple-100 rounded-lg">
@@ -227,7 +227,7 @@ const AdminCustomers = () => {
               <div className="bg-white p-6 rounded-xl border border-purple-200 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-2xl font-bold text-purple-600">{stats.recent}</div>
+                    <div className="text-2xl font-bold text-purple-900">{stats.recent}</div>
                     <div className="text-purple-500 text-sm font-medium">New This Week</div>
                   </div>
                   <div className="p-2 bg-purple-100 rounded-lg">
@@ -238,7 +238,7 @@ const AdminCustomers = () => {
               <div className="bg-white p-6 rounded-xl border border-purple-200 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-2xl font-bold text-purple-600">
+                    <div className="text-2xl font-bold text-purple-900">
                       {stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0}%
                     </div>
                     <div className="text-purple-500 text-sm font-medium">Active Rate</div>

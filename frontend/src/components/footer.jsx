@@ -1,4 +1,5 @@
 import React from "react";
+import { Link} from "react-router-dom";
 import { FiMail, FiFacebook, FiSend, FiInstagram, FiPhone, FiHeart } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 
@@ -40,7 +41,6 @@ const Footer = () => {
               <li><a href="/" className="hover:text-purple-200 transition-colors text-sm">Home</a></li>
               <li><a href="/about" className="hover:text-purple-200 transition-colors text-sm">About</a></li>
               <li><a href="/findtherapist" className="hover:text-purple-200 transition-colors text-sm">Find a Therapist</a></li>
-              <li><a href="#" className="hover:text-purple-200 transition-colors text-sm">Online Therapy</a></li>
             </ul>
           </nav>
 
@@ -48,9 +48,6 @@ const Footer = () => {
             <h3 className="font-semibold text-purple-300 text-sm uppercase tracking-wider">Resources</h3>
             <ul className="space-y-3">
               <li><a href="/help" className="hover:text-purple-200 transition-colors text-sm">FAQ</a></li>
-              <li><a href="#" className="hover:text-purple-200 transition-colors text-sm">Advice & Articles</a></li>
-              <li><a href="#" className="hover:text-purple-200 transition-colors text-sm">For Therapists</a></li>
-              <li><a href="#" className="hover:text-purple-200 transition-colors text-sm">Business Solutions</a></li>
             </ul>
           </nav>
 
@@ -67,10 +64,10 @@ const Footer = () => {
                 <span>support@letsheal.com</span>
               </div>
               <div className="pt-2">
-                <button className="bg-white text-purple-800 hover:bg-purple-100 py-2 px-5 rounded-full font-medium transition-colors text-xs flex items-center">
+                <Link to ="/help"><button className="bg-white text-purple-800 hover:bg-purple-100 py-2 px-5 rounded-full font-medium transition-colors text-xs flex items-center">
                   <FiSend className="mr-1.5" size={14} />
                   Send Message
-                </button>
+                </button></Link>
               </div>
             </div>
           </div>

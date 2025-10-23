@@ -1,6 +1,7 @@
 import React from "react";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
+import { Link } from "react-router-dom";
 const AboutUs = () => {
   return (
     <div id="about">
@@ -78,9 +79,9 @@ const AboutUs = () => {
         <div className="bg-purple-800 rounded-xl p-10 text-center text-purple-200 shadow-lg">
           <h3 className="text-2xl font-semibold mb-4">Begin Your Therapeutic Journey Today</h3>
           <p className="mb-6 max-w-2xl mx-auto opacity-90">Join the growing community of Bangladeshis who have discovered renewed wellbeing through Let's Heal's professional support system.</p>
-          <button className="bg-purple-200 text-purple-800 font-semibold px-8 py-3 rounded-lg hover:bg-purple-300 transition duration-300 shadow-md">
+          <Link to="/findtherapist"><button className="bg-purple-200 text-purple-800 font-semibold px-8 py-3 rounded-lg hover:bg-purple-300 transition duration-300 shadow-md">
             Connect with a Therapist
-          </button>
+          </button></Link>
         </div>
       </div>
     </div>

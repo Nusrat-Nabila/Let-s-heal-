@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 
-// Search Icon component (you'll need to define this or use an icon library)
+// Search Icon component
 const SearchIcon = ({ className }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -11,6 +11,9 @@ const Filterbar = ({ filters, onFilterChange, therapistCount }) => {
   const [hospitals, setHospitals] = useState([]);
   const [localSearch, setLocalSearch] = useState(filters.search || "");
   const [loadingHospitals, setLoadingHospitals] = useState(false);
+  
+  // Debounce timer reference
+  const debounceTimer = useRef(null);
 
   // Static data
   const specializationOptions = [
@@ -76,26 +79,52 @@ const Filterbar = ({ filters, onFilterChange, therapistCount }) => {
     }
   }, []);
 
-  // Handle search input - FIXED: removed references to undefined functions
+  // Simple debounce function
+  const debounceSearch = useCallback((value) => {
+    // Clear previous timer
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+    debounceTimer.current = setTimeout(() => {
+      onFilterChange({
+        ...filters,
+        search: value
+      });
+    }, 800);
+  }, [filters, onFilterChange]);
+
+  // Handle search input with debounce
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setLocalSearch(value);
-    onFilterChange({
-      ...filters,
-      search: value
-    });
+  
+    if (value.trim() === "") {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+      onFilterChange({
+        ...filters,
+        search: ""
+      });
+    } else {
+      // Debounce for non-empty values
+      debounceSearch(value);
+    }
   };
 
-  // Clear search - FIXED: removed references to undefined state variables
+  // Clear search
   const handleClearSearch = () => {
     setLocalSearch("");
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
     onFilterChange({
       ...filters,
       search: ""
     });
   };
 
-  // Handle filter changes
+  // Handle filter changes (other than search)
   const handleFilterChange = (filterName, value) => {
     onFilterChange({
       ...filters,
@@ -106,6 +135,10 @@ const Filterbar = ({ filters, onFilterChange, therapistCount }) => {
   // Clear all filters
   const clearFilters = () => {
     setLocalSearch("");
+    // Clear any pending debounce timer
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
     onFilterChange({
       search: "",
       specialty: "",
@@ -119,6 +152,10 @@ const Filterbar = ({ filters, onFilterChange, therapistCount }) => {
   const removeFilter = (filterName) => {
     if (filterName === "search") {
       setLocalSearch("");
+      // Clear any pending debounce timer
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
     }
     onFilterChange({
       ...filters,
@@ -126,28 +163,31 @@ const Filterbar = ({ filters, onFilterChange, therapistCount }) => {
     });
   };
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, []);
+
   // Effects
   useEffect(() => {
     fetchHospitalList();
   }, [fetchHospitalList]);
 
-  // FIX: Only sync from parent to child when search is actually cleared from outside
   useEffect(() => {
-    // Only update localSearch if filters.search is empty and localSearch is not
     if (filters.search === "" && localSearch !== "") {
       setLocalSearch("");
     }
-    // If filters.search has value and it's different from localSearch, sync it
-    else if (filters.search && filters.search !== localSearch) {
-      setLocalSearch(filters.search);
-    }
-  }, [filters.search]); // Only depend on filters.search
+  }, [filters.search]);
 
   // Check if any filters are active
   const hasActiveFilters = filters.search || filters.specialty || filters.hospital || filters.gender;
 
   return (
-    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl shadow-lg p-4 sm:p-6 mb-6 border border-purple-200">
+    <div id="filterbar" className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl shadow-lg p-4 sm:p-6 mb-6 border border-purple-200">
       {/* Header Section */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
         <div className="text-center lg:text-left">
@@ -166,6 +206,7 @@ const Filterbar = ({ filters, onFilterChange, therapistCount }) => {
             Sort by:
           </span>
           <select 
+            id="sort-select"
             className="w-full sm:w-auto px-3 py-2 rounded-lg bg-white border border-purple-300 text-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
             value={filters.sortBy}
             onChange={(e) => handleFilterChange("sortBy", e.target.value)}
@@ -176,21 +217,25 @@ const Filterbar = ({ filters, onFilterChange, therapistCount }) => {
         </div>
       </div>
 
-      {/* Search Section - FIXED: Corrected the structure and variable names */}
+      {/* Search Section with ID */}
       <div className="mb-4">
         <div className="relative">
           <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <input
+          <input 
+            id="therapist-search-input"
             type="text"
             placeholder="Search therapists by name, specialty, or hospital..."
             value={localSearch}
             onChange={handleSearchChange}
             className="w-full pl-10 pr-10 py-2 rounded-lg border border-gray-300 bg-white text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 text-sm"
+            aria-label="Search therapists"
           />
           {localSearch && (
             <button
+              id="clear-search-btn"
               onClick={handleClearSearch}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Clear search"
             >
               ✕
             </button>
@@ -198,8 +243,8 @@ const Filterbar = ({ filters, onFilterChange, therapistCount }) => {
         </div>
         <p className="text-xs text-purple-600 mt-2">
           {localSearch 
-            ? `Searching for "${localSearch}"` 
-            : "Start typing to search therapists - results update instantly"}
+            ? `Searching for "${localSearch}" (updates automatically)` 
+            : "Start typing to search therapists - results update automatically"}
         </p>
       </div>
 
@@ -215,8 +260,9 @@ const Filterbar = ({ filters, onFilterChange, therapistCount }) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Specialty Filter */}
           <div className="flex flex-col">
-            <label className="text-sm font-medium text-purple-800 mb-2">Specialty</label>
+            <label htmlFor="specialty-select" className="text-sm font-medium text-purple-800 mb-2">Specialty</label>
             <select 
+              id="specialty-select"
               className="w-full px-3 py-2 rounded-lg border border-purple-300 bg-white text-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
               value={filters.specialty}
               onChange={(e) => handleFilterChange("specialty", e.target.value)}
@@ -232,13 +278,14 @@ const Filterbar = ({ filters, onFilterChange, therapistCount }) => {
 
           {/* Hospital Filter */}
           <div className="flex flex-col">
-            <label className="text-sm font-medium text-purple-800 mb-2">
+            <label htmlFor="hospital-select" className="text-sm font-medium text-purple-800 mb-2">
               Hospital
               {loadingHospitals && (
                 <span className="ml-2 text-xs text-purple-600">Loading...</span>
               )}
             </label>
             <select 
+              id="hospital-select"
               className="w-full px-3 py-2 rounded-lg border border-purple-300 bg-white text-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm disabled:opacity-50"
               value={filters.hospital}
               onChange={(e) => handleFilterChange("hospital", e.target.value)}
@@ -255,8 +302,9 @@ const Filterbar = ({ filters, onFilterChange, therapistCount }) => {
 
           {/* Gender Filter */}
           <div className="flex flex-col">
-            <label className="text-sm font-medium text-purple-800 mb-2">Gender</label>
+            <label htmlFor="gender-select" className="text-sm font-medium text-purple-800 mb-2">Gender</label>
             <select 
+              id="gender-select"
               className="w-full px-3 py-2 rounded-lg border border-purple-300 bg-white text-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
               value={filters.gender}
               onChange={(e) => handleFilterChange("gender", e.target.value)}
@@ -272,6 +320,7 @@ const Filterbar = ({ filters, onFilterChange, therapistCount }) => {
           <div className="flex flex-col justify-end">
             <label className="text-sm font-medium text-purple-800 mb-2 invisible">Clear</label>
             <button 
+              id="clear-all-filters-btn"
               className="w-full px-3 py-2 rounded-lg border border-purple-300 bg-white text-purple-700 font-medium hover:bg-purple-50 hover:text-purple-800 transition-colors flex items-center justify-center text-sm"
               onClick={clearFilters}
               type="button"
@@ -286,7 +335,7 @@ const Filterbar = ({ filters, onFilterChange, therapistCount }) => {
 
         {/* Active Filters Display */}
         {hasActiveFilters && (
-          <div className="mt-4 pt-4 border-t border-purple-200">
+          <div id="active-filters-display" className="mt-4 pt-4 border-t border-purple-200">
             <p className="text-sm font-medium text-purple-800 mb-2">Active Filters:</p>
             <div className="flex flex-wrap gap-2">
               {filters.search && (

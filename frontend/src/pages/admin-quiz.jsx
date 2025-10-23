@@ -89,8 +89,6 @@ const AdminQuiz = () => {
                 is_required: questionForm.is_required || true
             };
 
-            console.log('📤 Sending question data:', formData);
-
             const response = await fetch(`${API_BASE_URL}/api/admin/add_question/`, {
                 method: 'POST',
                 headers: {
@@ -100,7 +98,6 @@ const AdminQuiz = () => {
             });
             
             const result = await response.json();
-            console.log('📥 Response:', response.status, result);
             
             if (response.ok) {
                 setQuestions([...questions, result]);
@@ -111,7 +108,7 @@ const AdminQuiz = () => {
             }
             
         } catch (err) {
-            console.error('❌ Add question exception:', err);
+            console.error('Add question exception:', err);
             setError('Error adding question: ' + err.message);
         }
         setLoading(false);
@@ -309,7 +306,7 @@ const AdminQuiz = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Header Section with Background Card */}
                     <div className="relative mb-8">
-                        <div className="bg-gradient-to-r from-purple-800 to-purple-900 rounded-2xl shadow-xl p-8 text-white relative overflow-hidden">
+                        <div id="admin-quiz-header" className="bg-gradient-to-r from-purple-800 to-purple-900 rounded-2xl shadow-xl p-8 text-white relative overflow-hidden">
                             {/* Background Pattern */}
                             <div className="absolute inset-0 opacity-10">
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-purple-300 rounded-full -translate-y-32 translate-x-32"></div>
@@ -318,11 +315,11 @@ const AdminQuiz = () => {
                             
                             {/* Content */}
                             <div className="relative z-10">
-                                <h1 className="text-4xl font-bold mb-3">Quiz Management</h1>
-                                <p className="text-purple-100 text-lg mb-4 max-w-2xl">
+                                <h1 id="admin-quiz-title" className="text-4xl font-bold mb-3">Quiz Management</h1>
+                                <p id="admin-quiz-description" className="text-purple-100 text-lg mb-4 max-w-2xl">
                                     Manage questions and result ranges for your quiz. Create engaging quizzes with customizable questions and scoring systems.
                                 </p>
-                                <div className="flex items-center space-x-6 text-purple-200">
+                                <div id="admin-quiz-features" className="flex items-center space-x-6 text-purple-200">
                                     <div className="flex items-center space-x-2">
                                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
@@ -348,20 +345,21 @@ const AdminQuiz = () => {
 
                     {/* Alerts */}
                     {error && (
-                        <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                        <div id="admin-quiz-error" className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
                             {error}
                         </div>
                     )}
                     {success && (
-                        <div className="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+                        <div id="admin-quiz-success" className="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
                             {success}
                         </div>
                     )}
 
                     {/* Tabs */}
-                    <div className="mb-6 border-b border-purple-200">
+                    <div id="admin-quiz-tabs" className="mb-6 border-b border-purple-200">
                         <nav className="-mb-px flex space-x-8">
                             <button
+                                id="questions-tab"
                                 onClick={() => setActiveTab('questions')}
                                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                                     activeTab === 'questions'
@@ -372,6 +370,7 @@ const AdminQuiz = () => {
                                 Questions
                             </button>
                             <button
+                                id="result-ranges-tab"
                                 onClick={() => setActiveTab('resultRanges')}
                                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                                     activeTab === 'resultRanges'
@@ -386,18 +385,19 @@ const AdminQuiz = () => {
 
                     {/* Questions Tab */}
                     {activeTab === 'questions' && (
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div id="questions-section" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             {/* Question Form */}
-                            <div className="lg:col-span-1">
+                            <div id="question-form-container" className="lg:col-span-1">
                                 <div className="bg-white shadow-lg rounded-lg p-6 border border-purple-100">
-                                    <h2 className="text-lg font-medium text-purple-800 mb-4">
+                                    <h2 id="question-form-title" className="text-lg font-medium text-purple-800 mb-4">
                                         {editingQuestion ? 'Edit Question' : 'Add New Question'}
                                     </h2>
-                                    <form onSubmit={editingQuestion ? updateQuestion : addQuestion}>
+                                    <form id="question-form" onSubmit={editingQuestion ? updateQuestion : addQuestion}>
                                         <div className="space-y-4">
                                             <div>
-                                                <label className="block text-sm font-medium text-purple-800">Order *</label>
+                                                <label htmlFor="question-order" className="block text-sm font-medium text-purple-800">Order *</label>
                                                 <input
+                                                    id="question-order"
                                                     type="number"
                                                     required
                                                     min="1"
@@ -409,8 +409,9 @@ const AdminQuiz = () => {
                                             </div>
                                             
                                             <div>
-                                                <label className="block text-sm font-medium text-purple-800">Question Text *</label>
+                                                <label htmlFor="question-text" className="block text-sm font-medium text-purple-800">Question Text *</label>
                                                 <textarea
+                                                    id="question-text"
                                                     required
                                                     value={questionForm.question_text}
                                                     onChange={(e) => handleQuestionInputChange('question_text', e.target.value)}
@@ -424,10 +425,11 @@ const AdminQuiz = () => {
                                             {['a', 'b', 'c', 'd'].map((option) => (
                                                 <div key={option} className="grid grid-cols-2 gap-2">
                                                     <div>
-                                                        <label className="block text-sm font-medium text-purple-800">
+                                                        <label htmlFor={`option-${option}`} className="block text-sm font-medium text-purple-800">
                                                             Option {option.toUpperCase()} *
                                                         </label>
                                                         <input
+                                                            id={`option-${option}`}
                                                             type="text"
                                                             required
                                                             value={questionForm[`option_${option}`]}
@@ -437,10 +439,11 @@ const AdminQuiz = () => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-purple-800">
+                                                        <label htmlFor={`score-${option}`} className="block text-sm font-medium text-purple-800">
                                                             Score *
                                                         </label>
                                                         <input
+                                                            id={`score-${option}`}
                                                             type="number"
                                                             required
                                                             value={questionForm[`score_${option}`]}
@@ -454,18 +457,20 @@ const AdminQuiz = () => {
 
                                             <div className="flex items-center">
                                                 <input
+                                                    id="question-required"
                                                     type="checkbox"
                                                     checked={questionForm.is_required}
                                                     onChange={(e) => handleQuestionInputChange('is_required', e.target.checked)}
                                                     className="h-4 w-4 text-purple-800 focus:ring-purple-800 border-purple-300 rounded"
                                                 />
-                                                <label className="ml-2 block text-sm text-purple-800">
+                                                <label htmlFor="question-required" className="ml-2 block text-sm text-purple-800">
                                                     Required question
                                                 </label>
                                             </div>
 
                                             <div className="flex space-x-3">
                                                 <button
+                                                    id="submit-question-btn"
                                                     type="submit"
                                                     disabled={loading}
                                                     className="flex-1 bg-purple-800 text-white py-2 px-4 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-800 focus:ring-offset-2 disabled:opacity-50 transition-colors duration-200"
@@ -474,6 +479,7 @@ const AdminQuiz = () => {
                                                 </button>
                                                 {editingQuestion && (
                                                     <button
+                                                        id="cancel-edit-btn"
                                                         type="button"
                                                         onClick={cancelEdit}
                                                         disabled={loading}
@@ -489,25 +495,25 @@ const AdminQuiz = () => {
                             </div>
 
                             {/* Questions List */}
-                            <div className="lg:col-span-2">
+                            <div id="questions-list-container" className="lg:col-span-2">
                                 <div className="bg-white shadow-lg rounded-lg overflow-hidden border border-purple-100">
                                     <div className="px-6 py-4 border-b border-purple-200 bg-purple-50">
                                         <div className="flex justify-between items-center">
-                                            <h2 className="text-lg font-semibold text-purple-800">
+                                            <h2 id="questions-list-title" className="text-lg font-semibold text-purple-800">
                                                 Questions List
                                             </h2>
-                                            <span className="bg-purple-800 text-white text-sm font-medium px-2.5 py-0.5 rounded">
+                                            <span id="questions-count" className="bg-purple-800 text-white text-sm font-medium px-2.5 py-0.5 rounded">
                                                 Total: {questions.length}
                                             </span>
                                         </div>
                                         {loading && (
-                                            <p className="mt-1 text-sm text-purple-600">Loading questions...</p>
+                                            <p id="questions-loading" className="mt-1 text-sm text-purple-600">Loading questions...</p>
                                         )}
                                     </div>
                                     
-                                    <div className="divide-y divide-purple-100 max-h-[600px] overflow-y-auto">
+                                    <div id="questions-list" className="divide-y divide-purple-100 max-h-[600px] overflow-y-auto">
                                         {questions.length === 0 && !loading ? (
-                                            <div className="p-8 text-center">
+                                            <div id="no-questions-message" className="p-8 text-center">
                                                 <div className="text-purple-400 mb-2">
                                                     <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -518,18 +524,22 @@ const AdminQuiz = () => {
                                             </div>
                                         ) : (
                                             questions.map((question, index) => (
-                                                <div key={question.id} className="p-6 hover:bg-purple-50 transition-colors duration-200">
+                                                <div 
+                                                    id={`question-${question.id}`}
+                                                    key={question.id} 
+                                                    className="p-6 hover:bg-purple-50 transition-colors duration-200"
+                                                >
                                                     <div className="flex justify-between items-start mb-3">
                                                         <div className="flex items-center space-x-3">
-                                                            <div className="flex items-center justify-center w-8 h-8 bg-purple-800 text-white rounded-full font-semibold text-sm">
+                                                            <div id={`question-number-${index}`} className="flex items-center justify-center w-8 h-8 bg-purple-800 text-white rounded-full font-semibold text-sm">
                                                                 {index + 1}
                                                             </div>
                                                             <div className="flex items-center space-x-2">
-                                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                                                <span id={`question-order-${question.id}`} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                                                                     Order: {question.order}
                                                                 </span>
                                                                 {question.is_required && (
-                                                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                                    <span id={`question-required-badge-${question.id}`} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                                                         Required
                                                                     </span>
                                                                 )}
@@ -537,6 +547,7 @@ const AdminQuiz = () => {
                                                         </div>
                                                         <div className="flex space-x-2">
                                                             <button
+                                                                id={`edit-question-${question.id}`}
                                                                 onClick={() => startEditQuestion(question)}
                                                                 disabled={loading}
                                                                 className="inline-flex items-center px-3 py-1.5 border border-purple-800 text-purple-800 rounded-md text-sm font-medium hover:bg-purple-800 hover:text-white transition-colors disabled:opacity-50 duration-200"
@@ -547,6 +558,7 @@ const AdminQuiz = () => {
                                                                 Edit
                                                             </button>
                                                             <button
+                                                                id={`delete-question-${question.id}`}
                                                                 onClick={() => deleteQuestion(question.id)}
                                                                 disabled={loading}
                                                                 className="inline-flex items-center px-3 py-1.5 border border-red-800 text-red-800 rounded-md text-sm font-medium hover:bg-red-800 hover:text-white transition-colors disabled:opacity-50 duration-200"
@@ -559,27 +571,28 @@ const AdminQuiz = () => {
                                                         </div>
                                                     </div>
                                                     
-                                                    <h3 className="text-lg font-medium text-purple-800 mb-4 leading-relaxed">
+                                                    <h3 id={`question-text-${question.id}`} className="text-lg font-medium text-purple-800 mb-4 leading-relaxed">
                                                         {question.question_text}
                                                     </h3>
                                                     
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                    <div id={`question-options-${question.id}`} className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                         {['a', 'b', 'c', 'd'].map((option) => (
                                                             <div 
                                                                 key={option} 
+                                                                id={`option-${option}-${question.id}`}
                                                                 className="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-200"
                                                             >
                                                                 <div className="flex items-center space-x-3">
                                                                     <div className="flex items-center justify-center w-6 h-6 bg-white border border-purple-800 rounded text-xs font-medium text-purple-800">
                                                                         {option.toUpperCase()}
                                                                     </div>
-                                                                    <span className="text-sm font-medium text-purple-800">
+                                                                    <span id={`option-text-${option}-${question.id}`} className="text-sm font-medium text-purple-800">
                                                                         {question[`option_${option}`]}
                                                                     </span>
                                                                 </div>
                                                                 <div className="flex items-center space-x-2">
                                                                     <span className="text-xs text-purple-600 font-medium">Score:</span>
-                                                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                                                    <span id={`option-score-${option}-${question.id}`} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                                                                         {question[`score_${option}`]}
                                                                     </span>
                                                                 </div>
@@ -597,19 +610,20 @@ const AdminQuiz = () => {
 
                     {/* Result Ranges Tab - Only Add Form */}
                     {activeTab === 'resultRanges' && (
-                        <div className="flex justify-center">
+                        <div id="result-ranges-section" className="flex justify-center">
                             <div className="w-full max-w-2xl">
-                                <div className="bg-purple-50 shadow-lg rounded-lg p-6 border border-purple-200">
-                                    <h2 className="text-lg font-medium text-purple-800 mb-4">Add Result Range</h2>
-                                    <p className="text-purple-600 mb-4">
+                                <div id="result-range-form-container" className="bg-purple-50 shadow-lg rounded-lg p-6 border border-purple-200">
+                                    <h2 id="result-range-form-title" className="text-lg font-medium text-purple-800 mb-4">Add Result Range</h2>
+                                    <p id="result-range-form-description" className="text-purple-600 mb-4">
                                         Add score ranges and their corresponding result descriptions.
                                     </p>
-                                    <form onSubmit={addResultRange}>
+                                    <form id="result-range-form" onSubmit={addResultRange}>
                                         <div className="space-y-4">
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-sm font-medium text-purple-800">Min Score *</label>
+                                                    <label htmlFor="min-score" className="block text-sm font-medium text-purple-800">Min Score *</label>
                                                     <input
+                                                        id="min-score"
                                                         type="number"
                                                         required
                                                         min="0"
@@ -620,8 +634,9 @@ const AdminQuiz = () => {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-purple-800">Max Score *</label>
+                                                    <label htmlFor="max-score" className="block text-sm font-medium text-purple-800">Max Score *</label>
                                                     <input
+                                                        id="max-score"
                                                         type="number"
                                                         required
                                                         min="0"
@@ -633,8 +648,9 @@ const AdminQuiz = () => {
                                                 </div>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-purple-800">Result Text *</label>
+                                                <label htmlFor="result-text" className="block text-sm font-medium text-purple-800">Result Text *</label>
                                                 <textarea
+                                                    id="result-text"
                                                     required
                                                     value={resultRangeForm.result_text}
                                                     onChange={(e) => handleResultRangeInputChange('result_text', e.target.value)}
@@ -644,6 +660,7 @@ const AdminQuiz = () => {
                                                 />
                                             </div>
                                             <button
+                                                id="submit-result-range-btn"
                                                 type="submit"
                                                 disabled={loading}
                                                 className="w-full bg-purple-800 text-white py-2 px-4 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-800 focus:ring-offset-2 disabled:opacity-50 transition-colors duration-200"
