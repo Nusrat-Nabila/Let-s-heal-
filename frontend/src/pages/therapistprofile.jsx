@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 
 // Import default profile picture from assets
 import defaultProfilePic from "../assets/default-profile.png";
 
 const TherapistProfile = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [therapist, setTherapist] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -45,6 +46,43 @@ const TherapistProfile = () => {
 
     fetchTherapist();
   }, [id]);
+
+  // Check if user is logged in
+  const isLoggedIn = () => {
+    return localStorage.getItem('access_token') !== null;
+  };
+
+  // Handle book appointment click
+  const handleBookAppointment = () => {
+    if (!isLoggedIn()) {
+      // Redirect to login page with return URL
+      navigate('/login', { 
+        state: { 
+          from: `/booking/${therapist.id}`,
+          message: 'Please login to book an appointment'
+        }
+      });
+    } else {
+      // User is logged in, proceed to booking
+      navigate(`/booking/${therapist.id}`);
+    }
+  };
+
+  // Handle send message click
+  const handleSendMessage = () => {
+    if (!isLoggedIn()) {
+      navigate('/login', { 
+        state: { 
+          from: `/therapist/${id}`,
+          message: 'Please login to send a message'
+        }
+      });
+    } else {
+      // Handle message functionality for logged in users
+      console.log("Send message functionality");
+      // You can implement your message logic here
+    }
+  };
 
   // Function to get image URL from backend
   const getTherapistImage = (therapistData) => {
@@ -169,7 +207,7 @@ const TherapistProfile = () => {
   }
 
   return (
-    <div id= "profile" className="min-h-screen bg-purple-200">
+    <div id="profile" className="min-h-screen bg-purple-200">
       <Navbar />
       
       {/* Header Section */}
@@ -222,23 +260,29 @@ const TherapistProfile = () => {
                   </div>
                 </div>
                 
-<div className="mt-4 lg:mt-0 flex flex-col gap-2 lg:gap-3">
-  <Link to={`/booking/${therapist.id}`} className="w-full">
-    <button className="w-full bg-purple-800 hover:bg-purple-700 text-white font-medium py-2 lg:py-3 px-4 lg:px-8 rounded-lg transition-colors shadow flex items-center justify-center gap-2 lg:gap-3 text-sm lg:text-base">
-      <svg className="w-4 lg:w-5 h-4 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-      </svg>
-      Book Appointment
-    </button>
-  </Link>
-  
-  <button className="w-full border border-purple-800 bg-purple-100 hover:bg-purple-50 text-purple-800 font-medium py-2 lg:py-3 px-4 lg:px-8 rounded-lg transition-colors shadow flex items-center justify-center gap-2 lg:gap-3 text-sm lg:text-base">
-    <svg className="w-4 lg:w-5 h-4 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-    </svg>
-    Send Message
-  </button>
-</div>
+                <div className="mt-4 lg:mt-0 flex flex-col gap-2 lg:gap-3">
+                  {/* Book Appointment Button - Updated with onClick handler */}
+                  <button 
+                    onClick={handleBookAppointment}
+                    className="w-full bg-purple-800 hover:bg-purple-700 text-white font-medium py-2 lg:py-3 px-4 lg:px-8 rounded-lg transition-colors shadow flex items-center justify-center gap-2 lg:gap-3 text-sm lg:text-base"
+                  >
+                    <svg className="w-4 lg:w-5 h-4 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Book Appointment
+                  </button>
+                  
+                  {/* Send Message Button - Updated with onClick handler */}
+                  <button 
+                    onClick={handleSendMessage}
+                    className="w-full border border-purple-800 bg-purple-100 hover:bg-purple-50 text-purple-800 font-medium py-2 lg:py-3 px-4 lg:px-8 rounded-lg transition-colors shadow flex items-center justify-center gap-2 lg:gap-3 text-sm lg:text-base"
+                  >
+                    <svg className="w-4 lg:w-5 h-4 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    Send Message
+                  </button>
+                </div>
               </div>
             </div>
           </div>
